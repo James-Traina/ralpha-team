@@ -170,6 +170,45 @@ set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; se
 assert_contains "edge: mixed case promise matches" "Promise detected" "$OUTPUT"
 
 # ============================================================
+# Edge: Prompt with frontmatter-like lines survives bump_iteration
+# ============================================================
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<'STATE'
+---
+active: true
+mode: solo
+iteration: 1
+max_iterations: 0
+completion_promise: null
+verify_command: null
+verify_passed: false
+team_name: ralpha-test
+team_size: 1
+persona: null
+started_at: "2026-02-26T08:00:00Z"
+---
+
+Fix the bug where:
+iteration: counter resets to zero
+verify_passed: should be checked earlier
+STATE
+
+TRANSCRIPT=$(create_transcript "working on the iteration fix")
+set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
+assert_exit "edge: frontmatter-like prompt exits 0" 0 $EXIT
+
+# Verify the frontmatter was updated correctly
+source "$REPO_ROOT/scripts/parse-state.sh"
+ralpha_load_frontmatter
+assert_eq "edge: frontmatter iteration bumped" "2" "$(ralpha_parse_field "iteration")"
+
+# Verify the prompt body was NOT corrupted
+PROMPT=$(ralpha_parse_prompt)
+assert_contains "edge: prompt iteration: line preserved" "iteration: counter resets to zero" "$PROMPT"
+assert_contains "edge: prompt verify_passed: line preserved" "verify_passed: should be checked earlier" "$PROMPT"
+
+# ============================================================
 # Edge: Prompt with --- lines survives re-injection
 # ============================================================
 

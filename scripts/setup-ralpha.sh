@@ -114,6 +114,12 @@ for cmd in jq perl; do
   fi
 done
 
+# Warn about agent-teams requirement for team mode
+if [[ "$MODE" = "team" ]] && [[ "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}" != "1" ]]; then
+  echo "Warning: Team mode requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in your Claude Code settings.json env." >&2
+  echo "Without it, TeamCreate and TaskCreate tools may not be available." >&2
+fi
+
 # Source helpers
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/parse-state.sh"

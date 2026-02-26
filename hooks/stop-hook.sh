@@ -48,7 +48,13 @@ complete_session() {
 bump_iteration() {
   local next=$((ITERATION + 1))
   local tmp="${RALPHA_STATE_FILE}.tmp.$$"
-  sed "s/^iteration: .*/iteration: $next/" "$RALPHA_STATE_FILE" > "$tmp"
+  # Only modify within frontmatter (n==1), not the prompt body
+  awk -v val="$next" '
+    BEGIN{n=0}
+    /^---$/{n++; print; next}
+    n==1 && /^iteration:/{print "iteration: " val; next}
+    {print}
+  ' "$RALPHA_STATE_FILE" > "$tmp"
   mv "$tmp" "$RALPHA_STATE_FILE"
   echo "$next"
 }
@@ -142,7 +148,13 @@ if [[ "$PROMISE_DETECTED" = true ]]; then
 
     if [[ $VERIFY_EXIT -eq 0 ]]; then
       local_tmp="${RALPHA_STATE_FILE}.tmp.$$"
-      sed "s/^verify_passed: .*/verify_passed: true/" "$RALPHA_STATE_FILE" > "$local_tmp"
+      # Only modify within frontmatter (n==1), not the prompt body
+      awk '
+        BEGIN{n=0}
+        /^---$/{n++; print; next}
+        n==1 && /^verify_passed:/{print "verify_passed: true"; next}
+        {print}
+      ' "$RALPHA_STATE_FILE" > "$local_tmp"
       mv "$local_tmp" "$RALPHA_STATE_FILE"
       complete_session "completed" "Promise detected AND verification passed."
     else

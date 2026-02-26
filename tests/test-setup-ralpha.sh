@@ -104,6 +104,26 @@ assert_eq "default: completion_promise is null" "null" "$(ralpha_parse_field "co
 assert_eq "default: verify_command is null" "null" "$(ralpha_parse_field "verify_command")"
 assert_eq "default: max_iterations is 0" "0" "$(ralpha_parse_field "max_iterations")"
 
+# --- Agent-teams env var warning ---
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+OUTPUT=$(CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="" bash "$SETUP" --mode team "test task" 2>&1)
+EXIT=$?
+assert_exit "team without env var exits 0" 0 $EXIT
+assert_contains "team without env var warns" "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "$OUTPUT"
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+OUTPUT=$(CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="" bash "$SETUP" --mode solo "test task" 2>&1)
+EXIT=$?
+assert_exit "solo without env var exits 0" 0 $EXIT
+assert_not_contains "solo without env var no warning" "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "$OUTPUT"
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+OUTPUT=$(CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="1" bash "$SETUP" --mode team "test task" 2>&1)
+EXIT=$?
+assert_exit "team with env var exits 0" 0 $EXIT
+assert_not_contains "team with env var no warning" "Warning:" "$OUTPUT"
+
 # --- Active session protection ---
 
 # State file exists from defaults test above

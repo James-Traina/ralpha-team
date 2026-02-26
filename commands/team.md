@@ -41,6 +41,8 @@ Choose personas based on the objective. A typical team: 1 architect + 2 implemen
 
 **Create the team** using `TeamCreate` with the `team_name` from the state file (`.claude/ralpha-team.local.md`). Then spawn teammates using the `Task` tool with the `team_name` parameter so they join the team and can access the shared task list.
 
+Each agent file has a `model` field in its YAML frontmatter (e.g., `model: sonnet`). When calling the `Task` tool to spawn a teammate, pass this value as the `model` parameter so each persona runs on its intended model.
+
 When spawning each teammate, include in their prompt:
 - The full persona definition (from the agent file)
 - Their specific task(s) from the task list

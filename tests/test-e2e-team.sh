@@ -67,11 +67,14 @@ assert_file_exists "e2e team: tester agent exists" "$REPO_ROOT/agents/tester.md"
 assert_file_exists "e2e team: reviewer agent exists" "$REPO_ROOT/agents/reviewer.md"
 assert_file_exists "e2e team: debugger agent exists" "$REPO_ROOT/agents/debugger.md"
 
-# Verify each agent file has the expected frontmatter
+# Verify each agent file has the expected frontmatter and valid model
 for persona in architect implementer tester reviewer debugger; do
   CONTENT=$(cat "$REPO_ROOT/agents/$persona.md")
   assert_contains "e2e team: $persona has name" "name: $persona" "$CONTENT"
   assert_contains "e2e team: $persona has description" "description:" "$CONTENT"
+  # Model field must be a valid Task tool model parameter
+  MODEL=$(grep "^model:" "$REPO_ROOT/agents/$persona.md" | sed 's/model: *//')
+  assert_contains "e2e team: $persona model is valid" "$MODEL" "sonnet opus haiku"
 done
 
 # ============================================================
