@@ -1,7 +1,7 @@
 ---
 description: "Start Ralpha-Team orchestrated loop (team mode)"
 argument-hint: "PROMPT [--max-iterations N] [--completion-promise TEXT] [--verify-command CMD] [--team-size N]"
-allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/generate-report.sh:*)"]
+allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/generate-report.sh:*)", "Read(${CLAUDE_PLUGIN_ROOT}/agents/*.md)"]
 hide-from-slash-command-tool: "true"
 ---
 
@@ -18,34 +18,43 @@ You are now the **lead orchestrator** of a Ralpha-Team session. Your role:
 ## Orchestration Protocol
 
 ### Phase 1: Decompose
-Break the objective into 5-6 discrete, parallelizable tasks per teammate. Each task should:
+Break the objective into discrete, parallelizable tasks. Use `TaskCreate` to register each task — this is the shared task list that all teammates can see via `TaskList`.
+
+Each task should:
 - Have a clear deliverable (a file, a test suite, a module)
 - Be completable by one agent independently
 - Not require editing the same files as another task
 
+Use `TaskUpdate` to set `addBlockedBy` for tasks with dependencies. This ensures teammates work in the correct order.
+
 ### Phase 2: Spawn Team
-Create an agent team. Assign teammates using these personas:
-- **Architect**: designs structure, APIs, interfaces
-- **Implementer**: writes the actual code
-- **Tester**: writes and runs tests
-- **Reviewer**: reviews completed work for correctness
-- **Debugger**: diagnoses and fixes failures
+Create an agent team. Available personas are defined in `${CLAUDE_PLUGIN_ROOT}/agents/`:
+- **architect** — system design, API planning, task decomposition
+- **implementer** — writes production code
+- **tester** — writes and runs tests
+- **reviewer** — code review (read-only, does not write code)
+- **debugger** — diagnoses failures and fixes bugs
+
+**How to use personas**: Read the persona file (e.g. `${CLAUDE_PLUGIN_ROOT}/agents/implementer.md`) and include its full content in the teammate's spawn prompt. This gives each teammate their role definition, responsibilities, and working style.
 
 Choose personas based on the objective. A typical team: 1 architect + 2 implementers + 1 tester. Adjust based on task type.
 
-When spawning, give each teammate a detailed prompt with:
-- Their specific task(s) from the shared task list
+**Create the team** using `TeamCreate` with the `team_name` from the state file (`.claude/ralpha-team.local.md`). Then spawn teammates using the `Task` tool with the `team_name` parameter so they join the team and can access the shared task list.
+
+When spawning each teammate, include in their prompt:
+- The full persona definition (from the agent file)
+- Their specific task(s) from the task list
 - File paths they own (to avoid conflicts)
 - The verification command (so they can self-check)
 - Clear success criteria
 
 ### Phase 3: Monitor
 On each iteration of the loop:
-1. Check the shared task list for completed/pending tasks
-2. Check teammate inboxes for status updates
-3. Reassign idle teammates to unclaimed tasks
+1. Run `TaskList` to check completed/pending/blocked tasks
+2. Messages from teammates are delivered automatically — read and act on them
+3. Use `TaskUpdate` to reassign unclaimed tasks to idle teammates (set `owner`)
 4. Do synthesis work yourself (merge results, resolve conflicts)
-5. If all tasks are done, run verification and assess completion
+5. If all tasks are complete, run verification and assess completion
 
 ### Phase 4: Complete
 When all work is done and verified:

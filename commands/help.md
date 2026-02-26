@@ -28,6 +28,7 @@ The lead session runs a ralph-loop (outer iteration) and within each iteration s
 | `/ralpha-team:solo <prompt> [opts]` | Start solo loop |
 | `/ralpha-team:cancel` | Cancel active session |
 | `/ralpha-team:status` | Check session status |
+| `/ralpha-team:qa` | Analyze QA telemetry from last session |
 | `/ralpha-team:help` | This help message |
 
 ## Options
@@ -79,3 +80,13 @@ Both must pass simultaneously. If promise is detected but verification fails, th
 grep '^iteration:' .claude/ralpha-team.local.md  # Quick iteration check
 cat .claude/ralpha-team.local.md                 # Full state
 ```
+
+## QA Toolkit
+
+Every session automatically writes telemetry to `.claude/ralpha-qa.jsonl`. After a session:
+
+```bash
+/ralpha-team:qa    # Analyze telemetry, generate findings with health score
+```
+
+The findings report (`ralpha-qa-findings.md`) classifies issues as MUST-FIX / SHOULD-FIX / NICE-TO-HAVE and suggests a self-improvement cycle command — creating a dogfooding flywheel where the plugin improves itself.

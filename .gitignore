@@ -1,0 +1,6 @@
+# Ralpha-Team runtime state (created during sessions)
+.claude/
+
+# Generated reports and QA artifacts
+ralpha-report.md
+ralpha-qa-findings.md

@@ -21,7 +21,7 @@ ralpha_parse_field() {
   echo "$_RALPHA_FRONTMATTER" | grep "^${field}:" | sed "s/${field}: *//" | sed 's/^"\(.*\)"$/\1/'
 }
 
-# Extract the prompt body (everything after the closing ---).
+# Extract the prompt body (everything after the closing ---), trimming leading/trailing blank lines.
 ralpha_parse_prompt() {
-  awk '/^---$/{i++; next} i>=2' "$RALPHA_STATE_FILE"
+  awk '/^---$/{i++; next} i>=2' "$RALPHA_STATE_FILE" | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}'
 }

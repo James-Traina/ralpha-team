@@ -9,6 +9,7 @@ REPORT_FILE="ralpha-report.md"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/parse-state.sh"
+source "$SCRIPT_DIR/qa-log.sh"
 
 if [[ ! -f "$RALPHA_STATE_FILE" ]]; then
   echo "No active ralpha session - cannot generate report" >&2
@@ -78,4 +79,5 @@ $GIT_LOG
 \`\`\`
 EOF
 
+qa_log "report" "generated" "file=$REPORT_FILE" "completion_reason=$COMPLETION_REASON"
 echo "Report generated: $REPORT_FILE"

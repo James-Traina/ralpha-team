@@ -10,6 +10,7 @@ Orchestrated iterative development loops with agent-teams. Requires `CLAUDE_CODE
 | `/ralpha-team:solo <prompt> [opts]` | Solo loop (single session) |
 | `/ralpha-team:cancel` | Cancel active session |
 | `/ralpha-team:status` | Check session status |
+| `/ralpha-team:qa` | Analyze QA telemetry from last session |
 | `/ralpha-team:help` | Full documentation |
 
 ## Lead Orchestrator Protocol
@@ -27,4 +28,4 @@ When a session is active in team mode, you are the lead:
 
 Both gates must pass: output `<promise>PHRASE</promise>` when genuinely complete, and `--verify-command` must exit 0. Never output a false promise.
 
-State: `.claude/ralpha-team.local.md`
+State: `.claude/ralpha-team.local.md` | QA log: `.claude/ralpha-qa.jsonl`

@@ -81,6 +81,14 @@ HELP_EOF
         echo "Error: --persona requires a name (architect|implementer|tester|reviewer|debugger)" >&2
         exit 1
       fi
+      # Validate persona file exists
+      PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+      PERSONA_FILE="$PLUGIN_ROOT/agents/${2}.md"
+      if [[ ! -f "$PERSONA_FILE" ]]; then
+        AVAILABLE=$(ls "$PLUGIN_ROOT/agents/" 2>/dev/null | sed 's/\.md$//' | tr '\n' '|' | sed 's/|$//')
+        echo "Error: Unknown persona '${2}'. Available: $AVAILABLE" >&2
+        exit 1
+      fi
       PERSONA="$2"
       shift 2
       ;;
@@ -91,7 +99,7 @@ HELP_EOF
   esac
 done
 
-PROMPT="${PROMPT_PARTS[*]}"
+PROMPT="${PROMPT_PARTS[*]:-}"
 
 if [[ -z "$PROMPT" ]]; then
   echo "Error: No prompt provided. Run with --help for usage." >&2
@@ -100,6 +108,10 @@ fi
 
 # Create state directory
 mkdir -p .claude
+
+# QA logging
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/qa-log.sh"
 
 # Quote values for YAML
 quote_yaml() {
@@ -130,6 +142,12 @@ started_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 $PROMPT
 EOF
+
+HAS_PROMISE=$( [[ "$COMPLETION_PROMISE" != "null" ]] && echo "true" || echo "false" )
+HAS_VERIFY=$( [[ "$VERIFY_COMMAND" != "null" ]] && echo "true" || echo "false" )
+qa_log_num "setup" "session_start" \
+  "mode=$MODE" "max_iterations=$MAX_ITERATIONS" "team_size=$TEAM_SIZE" \
+  "has_promise=$HAS_PROMISE" "has_verify=$HAS_VERIFY" "persona=$PERSONA" "team_name=$TEAM_NAME"
 
 # Output setup message
 cat <<EOF

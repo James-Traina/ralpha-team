@@ -9,6 +9,7 @@ set -euo pipefail
 HOOK_INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" && pwd)"
 source "$SCRIPT_DIR/parse-state.sh"
+source "$SCRIPT_DIR/qa-log.sh"
 
 # No active loop - allow exit
 if [[ ! -f "$RALPHA_STATE_FILE" ]]; then
@@ -22,18 +23,20 @@ MODE=$(ralpha_parse_field "mode")
 COMPLETION_PROMISE=$(ralpha_parse_field "completion_promise")
 VERIFY_COMMAND=$(ralpha_parse_field "verify_command")
 
+qa_log_num "stop-hook" "invoked" "iteration=$ITERATION" "max_iterations=$MAX_ITERATIONS" "mode=$MODE"
+
 # --- Helpers ---
 
-# Abort with warning, clean up state file
 abort_with_warning() {
+  qa_log "stop-hook" "abort" "reason=$1"
   echo "WARNING: Ralpha: $1. Stopping." >&2
   rm "$RALPHA_STATE_FILE"
   exit 0
 }
 
-# Generate report and clean up state file, then exit
 complete_session() {
   local reason="$1"
+  qa_log "stop-hook" "session_complete" "reason=$reason"
   echo "Ralpha: $2"
   if [[ -f "$SCRIPT_DIR/generate-report.sh" ]]; then
     bash "$SCRIPT_DIR/generate-report.sh" "$reason" 2>/dev/null || true
@@ -42,7 +45,6 @@ complete_session() {
   exit 0
 }
 
-# Increment iteration in the state file
 bump_iteration() {
   local next=$((ITERATION + 1))
   local tmp="${RALPHA_STATE_FILE}.tmp.$$"
@@ -51,11 +53,11 @@ bump_iteration() {
   echo "$next"
 }
 
-# Output JSON to block exit and re-inject the prompt
 block_and_continue() {
   local sys_msg="$1"
   local prompt
   prompt=$(ralpha_parse_prompt)
+  qa_log "stop-hook" "decision" "action=block" "system_msg=$sys_msg"
   jq -n --arg prompt "$prompt" --arg msg "$sys_msg" \
     '{ "decision": "block", "reason": $prompt, "systemMessage": $msg }'
   exit 0
@@ -74,6 +76,7 @@ fi
 # --- Max iterations check ---
 
 if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
+  qa_log_num "stop-hook" "max_iterations_reached" "iteration=$ITERATION" "max_iterations=$MAX_ITERATIONS"
   complete_session "max_iterations_reached" "Max iterations ($MAX_ITERATIONS) reached."
 fi
 
@@ -108,27 +111,36 @@ if [[ $JQ_EXIT -ne 0 ]] || [[ -z "$LAST_OUTPUT" ]]; then
   abort_with_warning "Failed to parse assistant message"
 fi
 
+MSG_LENGTH=${#LAST_OUTPUT}
+qa_log_num "stop-hook" "transcript_parsed" "msg_length=$MSG_LENGTH"
+
 # --- Check completion promise ---
 
 PROMISE_DETECTED=false
 if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>(.*?)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
-  if [[ -n "$PROMISE_TEXT" ]] && [[ "$PROMISE_TEXT" = "$COMPLETION_PROMISE" ]]; then
+  # Case-insensitive comparison with whitespace normalization
+  PROMISE_LOWER=$(echo "$PROMISE_TEXT" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  EXPECTED_LOWER=$(echo "$COMPLETION_PROMISE" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  if [[ -n "$PROMISE_LOWER" ]] && [[ "$PROMISE_LOWER" = "$EXPECTED_LOWER" ]]; then
     PROMISE_DETECTED=true
   fi
+  qa_log "stop-hook" "promise_check" "detected=$PROMISE_DETECTED" "text=$PROMISE_TEXT" "expected=$COMPLETION_PROMISE"
 fi
 
 # --- Dual-gate: promise + verification ---
 
 if [[ "$PROMISE_DETECTED" = true ]]; then
   if [[ "$VERIFY_COMMAND" != "null" ]] && [[ -n "$VERIFY_COMMAND" ]]; then
+    qa_timer_start _VERIFY_TIMER
     set +e
     VERIFY_RESULT=$(bash "$SCRIPT_DIR/verify-completion.sh" 2>&1)
     VERIFY_EXIT=$?
     set -e
+    VERIFY_ELAPSED=$(qa_timer_elapsed _VERIFY_TIMER)
+    qa_log_num "stop-hook" "verify_after_promise" "exit_code=$VERIFY_EXIT" "duration_s=$VERIFY_ELAPSED"
 
     if [[ $VERIFY_EXIT -eq 0 ]]; then
-      # Update verify_passed flag
       local_tmp="${RALPHA_STATE_FILE}.tmp.$$"
       sed "s/^verify_passed: .*/verify_passed: true/" "$RALPHA_STATE_FILE" > "$local_tmp"
       mv "$local_tmp" "$RALPHA_STATE_FILE"
@@ -136,6 +148,7 @@ if [[ "$PROMISE_DETECTED" = true ]]; then
     else
       NEXT=$(bump_iteration)
       VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -20)
+      qa_log_num "stop-hook" "verify_failed_after_promise" "next_iteration=$NEXT"
       block_and_continue "Ralpha iteration $NEXT | Promise detected but VERIFICATION FAILED. Fix the issues and try again. Verification output: $VERIFY_SNIPPET"
     fi
   else

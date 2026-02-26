@@ -8,6 +8,7 @@ set -euo pipefail
 HOOK_INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" && pwd)"
 source "$SCRIPT_DIR/parse-state.sh"
+source "$SCRIPT_DIR/qa-log.sh"
 
 if [[ ! -f "$RALPHA_STATE_FILE" ]]; then
   exit 0
@@ -20,5 +21,6 @@ if [[ "$MODE" != "team" ]]; then
   exit 0
 fi
 
-echo "Before going idle: check the shared task list for unclaimed tasks. If any exist, claim and work on one. If all tasks are complete or claimed, you may go idle."
+qa_log "idle-hook" "nudge" "mode=$MODE"
+echo "Before going idle: run TaskList to check for unclaimed tasks (status: pending, no owner, not blocked). If any exist, claim one with TaskUpdate (set owner to your name) and work on it. If all tasks are complete or claimed, you may go idle."
 exit 2
