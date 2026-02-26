@@ -1,0 +1,16 @@
+{
+  "name": "ralpha-team",
+  "description": "Full-featured Ralph orchestra combining self-referential loops with agent-teams parallelism. Hybrid solo/team modes, role personas, quality gates, verification commands, and structured reporting for overnight autonomous development.",
+  "version": "1.0.0",
+  "author": {
+    "name": "James Traina"
+  },
+  "keywords": [
+    "ralph",
+    "orchestration",
+    "agent-teams",
+    "loop",
+    "autonomous",
+    "overnight"
+  ]
+}
