@@ -169,4 +169,61 @@ TRANSCRIPT=$(create_transcript "<promise>ALL TESTS PASSING</promise>")
 set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
 assert_contains "edge: mixed case promise matches" "Promise detected" "$OUTPUT"
 
+# ============================================================
+# Edge: Prompt with --- lines survives re-injection
+# ============================================================
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<'STATE'
+---
+active: true
+mode: solo
+iteration: 1
+max_iterations: 0
+completion_promise: null
+verify_command: null
+verify_passed: false
+team_name: ralpha-test
+team_size: 1
+persona: null
+started_at: "2026-02-26T08:00:00Z"
+---
+
+Build API.
+---
+Add auth.
+---
+Write tests.
+STATE
+
+TRANSCRIPT=$(create_transcript "working on it")
+set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
+assert_exit "edge: dashes prompt exits 0" 0 $EXIT
+# The re-injected prompt (in "reason" field) must contain the --- lines
+assert_contains "edge: dashes prompt has separator" "---" "$OUTPUT"
+assert_contains "edge: dashes prompt has auth line" "Add auth." "$OUTPUT"
+assert_contains "edge: dashes prompt has tests line" "Write tests." "$OUTPUT"
+
+# ============================================================
+# Edge: Pretty-printed JSON transcript (spaces around colons)
+# ============================================================
+
+create_state "solo" 1 0 "DONE" "null"
+PRETTY_TRANSCRIPT="$TEST_TMPDIR/pretty-transcript.jsonl"
+printf '{"role" : "assistant", "message" : {"content" : [{"type" : "text", "text" : "<promise>DONE</promise>"}]}}\n' > "$PRETTY_TRANSCRIPT"
+set +e; OUTPUT=$(hook_input "$PRETTY_TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
+assert_exit "edge: pretty JSON exits 0" 0 $EXIT
+assert_contains "edge: pretty JSON promise detected" "Promise detected" "$OUTPUT"
+
+# ============================================================
+# Edge: JSON with extra whitespace variations
+# ============================================================
+
+create_state "solo" 1 0 "null" "null"
+SPACED_TRANSCRIPT="$TEST_TMPDIR/spaced-transcript.jsonl"
+printf '{ "role":"assistant" , "message":{"content":[{"type":"text","text":"just working"}]}}\n' > "$SPACED_TRANSCRIPT"
+set +e; OUTPUT=$(hook_input "$SPACED_TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
+assert_exit "edge: mixed spacing exits 0" 0 $EXIT
+assert_contains "edge: mixed spacing continues loop" '"block"' "$OUTPUT"
+
 teardown_test_env

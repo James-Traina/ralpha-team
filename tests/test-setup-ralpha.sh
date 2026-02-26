@@ -104,4 +104,22 @@ assert_eq "default: completion_promise is null" "null" "$(ralpha_parse_field "co
 assert_eq "default: verify_command is null" "null" "$(ralpha_parse_field "verify_command")"
 assert_eq "default: max_iterations is 0" "0" "$(ralpha_parse_field "max_iterations")"
 
+# --- Active session protection ---
+
+# State file exists from defaults test above
+set +e
+OUTPUT=$(bash "$SETUP" --mode solo "new task" 2>&1)
+EXIT=$?
+set -e
+assert_exit "active session blocks" 1 $EXIT
+assert_contains "active session error" "already active" "$OUTPUT"
+assert_contains "active session cancel hint" "cancel" "$OUTPUT"
+
+# Clean up and verify fresh start works
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+OUTPUT=$(bash "$SETUP" --mode solo "new task" 2>&1)
+EXIT=$?
+assert_exit "fresh start after cleanup" 0 $EXIT
+assert_contains "fresh start activated" "activated" "$OUTPUT"
+
 teardown_test_env

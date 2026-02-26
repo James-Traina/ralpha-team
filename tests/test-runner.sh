@@ -55,7 +55,7 @@ assert_eq() {
 
 assert_contains() {
   local label="$1" needle="$2" haystack="$3"
-  if echo "$haystack" | grep -qF "$needle"; then
+  if echo "$haystack" | grep -qF -- "$needle"; then
     _bump "$RESULTS_DIR/pass"
     printf "  \033[32m✓\033[0m %s\n" "$label"
   else
@@ -69,7 +69,7 @@ assert_contains() {
 
 assert_not_contains() {
   local label="$1" needle="$2" haystack="$3"
-  if ! echo "$haystack" | grep -qF "$needle"; then
+  if ! echo "$haystack" | grep -qF -- "$needle"; then
     _bump "$RESULTS_DIR/pass"
     printf "  \033[32m✓\033[0m %s\n" "$label"
   else

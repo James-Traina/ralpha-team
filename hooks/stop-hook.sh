@@ -88,11 +88,11 @@ if [[ ! -f "$TRANSCRIPT_PATH" ]]; then
   abort_with_warning "Transcript file not found ($TRANSCRIPT_PATH)"
 fi
 
-if ! grep -q '"role":"assistant"' "$TRANSCRIPT_PATH"; then
+if ! grep -q '"role"[[:space:]]*:[[:space:]]*"assistant"' "$TRANSCRIPT_PATH"; then
   abort_with_warning "No assistant messages in transcript"
 fi
 
-LAST_LINE=$(grep '"role":"assistant"' "$TRANSCRIPT_PATH" | tail -1)
+LAST_LINE=$(grep '"role"[[:space:]]*:[[:space:]]*"assistant"' "$TRANSCRIPT_PATH" | tail -1)
 if [[ -z "$LAST_LINE" ]]; then
   abort_with_warning "Failed to extract last assistant message"
 fi

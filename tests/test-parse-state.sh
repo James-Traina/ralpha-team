@@ -78,4 +78,38 @@ assert_contains "multiline prompt: line 1" "Fix the login bug." "$PROMPT"
 assert_contains "multiline prompt: line 2" "Also update the tests." "$PROMPT"
 assert_contains "multiline prompt: line 3" "Make sure CI passes." "$PROMPT"
 
+# Test: prompt containing --- lines (must not corrupt frontmatter or drop --- from prompt)
+cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<'STATE'
+---
+active: true
+mode: solo
+iteration: 1
+max_iterations: 5
+completion_promise: "DONE"
+verify_command: null
+verify_passed: false
+team_name: ralpha-999999
+team_size: 1
+persona: null
+started_at: "2026-02-26T09:00:00Z"
+---
+
+Build a REST API.
+---
+Add authentication.
+---
+Write tests.
+STATE
+
+ralpha_load_frontmatter
+assert_eq "dashes in prompt: mode" "solo" "$(ralpha_parse_field "mode")"
+assert_eq "dashes in prompt: max_iterations" "5" "$(ralpha_parse_field "max_iterations")"
+assert_eq "dashes in prompt: completion_promise" "DONE" "$(ralpha_parse_field "completion_promise")"
+
+PROMPT=$(ralpha_parse_prompt)
+assert_contains "dashes in prompt: first line" "Build a REST API." "$PROMPT"
+assert_contains "dashes in prompt: separator preserved" "---" "$PROMPT"
+assert_contains "dashes in prompt: after first separator" "Add authentication." "$PROMPT"
+assert_contains "dashes in prompt: after second separator" "Write tests." "$PROMPT"
+
 teardown_test_env

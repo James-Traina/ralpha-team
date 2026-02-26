@@ -106,12 +106,31 @@ if [[ -z "$PROMPT" ]]; then
   exit 1
 fi
 
+# Check required dependencies
+for cmd in jq perl; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: Required dependency '$cmd' not found. Please install it." >&2
+    exit 1
+  fi
+done
+
+# Source helpers
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/parse-state.sh"
+source "$SCRIPT_DIR/qa-log.sh"
+
+# Refuse to overwrite an active session
+if [[ -f "$RALPHA_STATE_FILE" ]]; then
+  ralpha_load_frontmatter
+  EXISTING_MODE=$(ralpha_parse_field "mode")
+  EXISTING_ITER=$(ralpha_parse_field "iteration")
+  echo "Error: A Ralpha session is already active (mode: ${EXISTING_MODE:-unknown}, iteration: ${EXISTING_ITER:-?})." >&2
+  echo "Run /ralpha-team:cancel to end it first, or delete $RALPHA_STATE_FILE" >&2
+  exit 1
+fi
+
 # Create state directory
 mkdir -p .claude
-
-# QA logging
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/qa-log.sh"
 
 # Quote values for YAML
 quote_yaml() {
