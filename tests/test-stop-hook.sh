@@ -11,8 +11,7 @@ STOP_HOOK="$REPO_ROOT/hooks/stop-hook.sh"
 create_transcript() {
   local assistant_text="$1"
   local transcript_file="$TEST_TMPDIR/transcript.jsonl"
-  # Write a minimal JSONL with one assistant message
-  printf '{"role":"assistant","message":{"content":[{"type":"text","text":"%s"}]}}\n' "$assistant_text" > "$transcript_file"
+  jq -cn --arg t "$assistant_text" '{"role":"assistant","message":{"content":[{"type":"text","text":$t}]}}' > "$transcript_file"
   echo "$transcript_file"
 }
 

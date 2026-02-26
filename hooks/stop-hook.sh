@@ -2,7 +2,7 @@
 
 # Ralpha-Team Stop Hook
 # Prevents session exit when a ralpha loop is active.
-# Solo mode: re-injects same prompt. Team mode: also checks teammate status.
+# Solo mode: re-injects same prompt. Team mode: re-injects with teammate coordination instructions.
 
 set -euo pipefail
 
@@ -30,7 +30,7 @@ qa_log_num "stop-hook" "invoked" "iteration=$ITERATION" "max_iterations=$MAX_ITE
 abort_with_warning() {
   qa_log "stop-hook" "abort" "reason=$1"
   echo "WARNING: Ralpha: $1. Stopping." >&2
-  rm "$RALPHA_STATE_FILE"
+  rm -f "$RALPHA_STATE_FILE"
   exit 0
 }
 
@@ -41,7 +41,7 @@ complete_session() {
   if [[ -f "$SCRIPT_DIR/generate-report.sh" ]]; then
     bash "$SCRIPT_DIR/generate-report.sh" "$reason" 2>/dev/null || true
   fi
-  rm "$RALPHA_STATE_FILE"
+  rm -f "$RALPHA_STATE_FILE"
   exit 0
 }
 

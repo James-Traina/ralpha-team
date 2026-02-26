@@ -209,6 +209,36 @@ assert_contains "edge: prompt iteration: line preserved" "iteration: counter res
 assert_contains "edge: prompt verify_passed: line preserved" "verify_passed: should be checked earlier" "$PROMPT"
 
 # ============================================================
+# Edge: verify_passed update survives frontmatter-like prompt body
+# ============================================================
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<'STATE'
+---
+active: true
+mode: solo
+iteration: 1
+max_iterations: 0
+completion_promise: "FIXED"
+verify_command: "true"
+verify_passed: false
+team_name: ralpha-test
+team_size: 1
+persona: null
+started_at: "2026-02-26T08:00:00Z"
+---
+
+Fix the bug where:
+verify_passed: should be checked earlier
+iteration: counter resets
+STATE
+
+TRANSCRIPT=$(create_transcript '<promise>FIXED</promise>')
+set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
+assert_exit "edge: verify_passed update exits 0" 0 $EXIT
+assert_contains "edge: verify_passed completes" "verification passed" "$OUTPUT"
+
+# ============================================================
 # Edge: Prompt with --- lines survives re-injection
 # ============================================================
 

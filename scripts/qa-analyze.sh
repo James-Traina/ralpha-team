@@ -9,6 +9,11 @@
 
 set -euo pipefail
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: 'jq' is required for QA analysis but was not found." >&2
+  exit 1
+fi
+
 LOG_FILE="${1:-.claude/ralpha-qa.jsonl}"
 OUTPUT_FILE="ralpha-qa-findings.md"
 
@@ -55,9 +60,13 @@ VERIFY_DURATIONS=$(jq -r 'select(.component=="verify") | .data.duration_s // 0' 
 MAX_VERIFY_DURATION=0
 TOTAL_VERIFY_DURATION=0
 for d in $VERIFY_DURATIONS; do
-  TOTAL_VERIFY_DURATION=$((TOTAL_VERIFY_DURATION + d))
-  if [[ "$d" -gt "$MAX_VERIFY_DURATION" ]]; then
-    MAX_VERIFY_DURATION=$d
+  d=${d%.*}   # truncate fractional part
+  d=${d:-0}
+  if [[ "$d" =~ ^[0-9]+$ ]]; then
+    TOTAL_VERIFY_DURATION=$((TOTAL_VERIFY_DURATION + d))
+    if [[ "$d" -gt "$MAX_VERIFY_DURATION" ]]; then
+      MAX_VERIFY_DURATION=$d
+    fi
   fi
 done
 
@@ -82,12 +91,12 @@ if [[ "$PROMISE_DETECTED" -ge 2 ]] && [[ "$VERIFY_PASSED" -eq 0 ]] && [[ "$VERIF
   FINDINGS_MUST_FIX+=("**Verification never passes** (promise detected $PROMISE_DETECTED times, verify failed $VERIFY_FAILED times, never passed)|File: \`scripts/verify-completion.sh\`|Fix: The verify command may be wrong, environment-dependent, or testing the wrong thing. Run it manually outside the hook context.")
 fi
 
-# MUST-FIX: Stuck loop (5+ consecutive blocks with no promise attempt)
+# MUST-FIX: Stuck loop (5+ total blocks with no promise attempt)
 if [[ "$BLOCKS" -ge 5 ]] && [[ "$PROMISE_CHECKS" -eq 0 ]]; then
   FINDINGS_MUST_FIX+=("**Stuck loop** ($BLOCKS blocks, 0 promise attempts): The agent never attempted to complete.|File: \`commands/team.md\` or \`commands/solo.md\`|Fix: Ensure the completion promise instruction is clear. The agent may not know how to signal completion.")
 fi
 
-# SHOULD-FIX: Excessive iterations (>80% of max used)
+# SHOULD-FIX: Excessive iterations (>=80% of max used)
 if [[ "$MAX_ITER" -gt 0 ]] && [[ "$LAST_ITERATION" -gt 0 ]]; then
   USAGE_PCT=$(( (LAST_ITERATION * 100) / MAX_ITER ))
   if [[ "$USAGE_PCT" -ge 80 ]]; then
