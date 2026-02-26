@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Ralpha-Team Setup Script
 # Creates state file for in-session ralpha loop (solo or team mode).
-# Adapted from the official ralph-loop setup-ralph-loop.sh.
 
 set -euo pipefail
 
@@ -22,44 +20,19 @@ while [[ $# -gt 0 ]]; do
 Ralpha-Team - Orchestrated iterative development with agent-teams
 
 USAGE:
-  /ralpha-team [PROMPT...] [OPTIONS]
-  /ralpha-solo [PROMPT...] [OPTIONS]
-
-ARGUMENTS:
-  PROMPT...    Objective description (can be multiple words without quotes)
+  /ralpha-team:team [PROMPT...] [OPTIONS]
+  /ralpha-team:solo [PROMPT...] [OPTIONS]
 
 OPTIONS:
   --mode <solo|team>             Execution mode (default: team)
-  --max-iterations <n>           Max iterations before auto-stop (default: unlimited)
-  --completion-promise '<text>'  Promise phrase signaling completion (USE QUOTES)
-  --verify-command '<cmd>'       Verification command that must pass (USE QUOTES)
-  --team-size <n>                Number of teammates in team mode (default: 3)
-  --persona <name>               Persona for solo mode (architect|implementer|tester|reviewer|debugger)
+  --max-iterations <n>           Max loop iterations (default: unlimited)
+  --completion-promise '<text>'  Promise phrase for completion
+  --verify-command '<cmd>'       Verification command (must exit 0)
+  --team-size <n>                Teammates in team mode (default: 3)
+  --persona <name>               Persona for solo mode
   -h, --help                     Show this help
 
-MODES:
-  solo   Single-session ralph-loop. Good for focused tasks.
-  team   Agent-team with parallel teammates. Good for complex tasks.
-
-COMPLETION:
-  The loop ends when BOTH conditions are met:
-    1. Claude outputs <promise>YOUR_PHRASE</promise>
-    2. The --verify-command exits with code 0 (if specified)
-
-  Without --verify-command, the promise alone is sufficient.
-  Without --completion-promise, only --max-iterations can stop the loop.
-
-EXAMPLES:
-  /ralpha-team Build a REST API --completion-promise 'DONE' --verify-command 'npm test' --max-iterations 30
-  /ralpha-solo Fix the auth bug --completion-promise 'FIXED' --verify-command 'pytest' --max-iterations 15
-  /ralpha-team --team-size 4 Refactor the data layer --max-iterations 25
-
-MONITORING:
-  /ralpha-status              # Check current state
-  grep '^iteration:' .claude/ralpha-team.local.md  # Quick iteration check
-
-STOPPING:
-  /cancel-ralpha              # Cancel the active loop
+Run /ralpha-team:help for full documentation and examples.
 HELP_EOF
       exit 0
       ;;

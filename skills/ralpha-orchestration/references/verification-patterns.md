@@ -1,47 +1,22 @@
 # Verification Command Patterns
 
-## By Project Type
+## By Language
 
-### Node.js / TypeScript
-```bash
---verify-command 'npm test'
---verify-command 'npm test && npm run lint'
---verify-command 'npm test && npm run build'
---verify-command 'npx tsc --noEmit && npm test'
-```
+| Language | Examples |
+|----------|---------|
+| Node/TS | `npm test`, `npx tsc --noEmit && npm test`, `npm test && npm run lint` |
+| Python | `pytest`, `ruff check . && pytest`, `pytest --cov=src --cov-fail-under=80` |
+| Rust | `cargo test`, `cargo clippy -- -D warnings && cargo test` |
+| Go | `go test ./...`, `go vet ./... && go test ./...` |
 
-### Python
-```bash
---verify-command 'pytest'
---verify-command 'pytest && mypy src/'
---verify-command 'pytest --cov=src --cov-fail-under=80'
---verify-command 'ruff check . && pytest'
-```
+Chain multiple checks: `npm run lint && npm test && npm run build`
 
-### Rust
-```bash
---verify-command 'cargo test'
---verify-command 'cargo clippy -- -D warnings && cargo test'
---verify-command 'cargo build && cargo test'
-```
+## Guidelines
 
-### Go
-```bash
---verify-command 'go test ./...'
---verify-command 'go vet ./... && go test ./...'
-```
-
-### Multi-step Verification
-```bash
---verify-command 'npm run lint && npm test && npm run build'
-```
-
-## Writing Good Verification Commands
-
-- **Fast feedback**: the command runs on every completion attempt. Keep it under 60 seconds.
-- **Deterministic**: the same code should always produce the same result.
-- **Comprehensive**: test the actual objective, not just syntax.
-- **Exit code**: 0 = pass, non-zero = fail. Most test frameworks do this by default.
+- **Fast**: runs on every completion attempt -- keep under 60 seconds
+- **Deterministic**: same code produces same result
+- **Comprehensive**: test the actual objective, not just syntax
+- **Exit code**: 0 = pass, non-zero = fail (most test frameworks do this by default)
 
 ## Completion Promise Examples
 
@@ -51,6 +26,5 @@
 | Fix a bug | `BUG FIXED AND TESTS PASSING` |
 | Add test coverage | `COVERAGE ABOVE 80 PERCENT` |
 | Refactor module | `REFACTOR COMPLETE` |
-| Migrate database | `MIGRATION APPLIED AND VERIFIED` |
 
-Keep promises specific and verifiable. "DONE" is too vague — "ALL TESTS PASSING" is better.
+Keep promises specific and verifiable -- "ALL TESTS PASSING" is better than "DONE".

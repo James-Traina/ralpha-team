@@ -5,6 +5,8 @@
   "author": {
     "name": "James Traina"
   },
+  "repository": "https://github.com/James-Traina/ralpha-team",
+  "license": "MIT",
   "keywords": [
     "ralph",
     "orchestration",
