@@ -29,3 +29,16 @@ When a session is active in team mode, you are the lead:
 Both gates must pass: output `<promise>PHRASE</promise>` when genuinely complete, and `--verify-command` must exit 0. Never output a false promise.
 
 State: `.claude/ralpha-team.local.md` | QA log: `.claude/ralpha-qa.jsonl`
+
+## Development
+
+### Testing
+- Run: `bash tests/test-runner.sh` (262 tests across 9 files)
+- Use `jq -cn --arg t "$text" '{...}'` for JSON in tests, never `printf`
+
+### Critical Invariant: Frontmatter Scoping
+- State file = YAML frontmatter + freeform prompt body separated by `---`
+- ALL reads/writes to state file MUST scope to frontmatter using awk `n==1` pattern
+- Prompt body can contain `---`, `iteration:`, `verify_passed:` — never match these
+- Grep patterns starting with `-` need `grep -qF --` (end-of-options marker)
+- Never name an awk variable `next` (shadows awk builtin)
