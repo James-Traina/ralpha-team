@@ -232,6 +232,90 @@ assert_contains "idle waste detected" "Idle teammate waste" "$FINDINGS"
 rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
 
 # ============================================================
+# Test: qa-analyze.sh detects flaky verification
+# ============================================================
+
+cat > "$QA_LOG" <<'FLAKY_LOG'
+{"ts":"2026-02-26T10:00:00Z","component":"setup","event":"session_start","data":{"mode":"solo","max_iterations":10,"team_size":1,"has_promise":"true","has_verify":"true"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"invoked","data":{"iteration":1,"max_iterations":10,"mode":"solo"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"promise_check","data":{"detected":"true","text":"DONE","expected":"DONE"}}
+{"ts":"2026-02-26T10:00:01Z","component":"verify","event":"failed","data":{"command":"npm test","exit_code":1,"duration_s":2}}
+{"ts":"2026-02-26T10:00:02Z","component":"stop-hook","event":"invoked","data":{"iteration":2,"max_iterations":10,"mode":"solo"}}
+{"ts":"2026-02-26T10:00:02Z","component":"stop-hook","event":"promise_check","data":{"detected":"true","text":"DONE","expected":"DONE"}}
+{"ts":"2026-02-26T10:00:02Z","component":"verify","event":"passed","data":{"command":"npm test","duration_s":2}}
+{"ts":"2026-02-26T10:00:02Z","component":"stop-hook","event":"session_complete","data":{"reason":"completed"}}
+FLAKY_LOG
+
+set +e; bash "$ANALYZE" "$QA_LOG" >/dev/null 2>&1; set -e
+FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+assert_contains "flaky verify detected" "Flaky verification" "$FINDINGS"
+assert_contains "flaky verify is SHOULD-FIX" "SHOULD-FIX" "$FINDINGS"
+
+rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
+
+# ============================================================
+# Test: qa-analyze.sh detects mismatched promise
+# ============================================================
+
+cat > "$QA_LOG" <<'MISMATCH_LOG'
+{"ts":"2026-02-26T10:00:00Z","component":"setup","event":"session_start","data":{"mode":"solo","max_iterations":10,"team_size":1,"has_promise":"true","has_verify":"true"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"invoked","data":{"iteration":1,"max_iterations":10,"mode":"solo"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"promise_check","data":{"detected":"false","text":"ALMOST DONE","expected":"ALL DONE"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"decision","data":{"action":"block","system_msg":"iter 2"}}
+{"ts":"2026-02-26T10:00:02Z","component":"stop-hook","event":"invoked","data":{"iteration":2,"max_iterations":10,"mode":"solo"}}
+{"ts":"2026-02-26T10:00:02Z","component":"stop-hook","event":"promise_check","data":{"detected":"true","text":"ALL DONE","expected":"ALL DONE"}}
+{"ts":"2026-02-26T10:00:02Z","component":"verify","event":"passed","data":{"command":"true","duration_s":0}}
+{"ts":"2026-02-26T10:00:02Z","component":"stop-hook","event":"session_complete","data":{"reason":"completed"}}
+MISMATCH_LOG
+
+set +e; bash "$ANALYZE" "$QA_LOG" >/dev/null 2>&1; set -e
+FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+assert_contains "mismatched promise detected" "Mismatched promise" "$FINDINGS"
+
+rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
+
+# ============================================================
+# Test: qa-analyze.sh detects task gate blocking
+# ============================================================
+
+cat > "$QA_LOG" <<'GATE_LOG'
+{"ts":"2026-02-26T10:00:00Z","component":"setup","event":"session_start","data":{"mode":"team","max_iterations":10,"team_size":3,"has_promise":"true","has_verify":"true"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"invoked","data":{"iteration":1,"max_iterations":10,"mode":"team"}}
+{"ts":"2026-02-26T10:00:01Z","component":"task-completed","event":"gate_blocked","data":{"exit_code":1,"duration_s":1}}
+{"ts":"2026-02-26T10:00:02Z","component":"task-completed","event":"gate_blocked","data":{"exit_code":1,"duration_s":1}}
+{"ts":"2026-02-26T10:00:03Z","component":"task-completed","event":"gate_blocked","data":{"exit_code":1,"duration_s":1}}
+{"ts":"2026-02-26T10:00:04Z","component":"stop-hook","event":"invoked","data":{"iteration":2,"max_iterations":10,"mode":"team"}}
+{"ts":"2026-02-26T10:00:04Z","component":"stop-hook","event":"promise_check","data":{"detected":"true","text":"DONE","expected":"DONE"}}
+{"ts":"2026-02-26T10:00:04Z","component":"verify","event":"passed","data":{"command":"true","duration_s":0}}
+{"ts":"2026-02-26T10:00:04Z","component":"stop-hook","event":"session_complete","data":{"reason":"completed"}}
+GATE_LOG
+
+set +e; bash "$ANALYZE" "$QA_LOG" >/dev/null 2>&1; set -e
+FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+assert_contains "task gate blocking detected" "Task gate blocking" "$FINDINGS"
+assert_contains "task gate blocking is SHOULD-FIX" "SHOULD-FIX" "$FINDINGS"
+
+rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
+
+# ============================================================
+# Test: qa-analyze.sh detects slow verification
+# ============================================================
+
+cat > "$QA_LOG" <<'SLOW_LOG'
+{"ts":"2026-02-26T10:00:00Z","component":"setup","event":"session_start","data":{"mode":"solo","max_iterations":10,"team_size":1,"has_promise":"true","has_verify":"true"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"invoked","data":{"iteration":1,"max_iterations":10,"mode":"solo"}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"promise_check","data":{"detected":"true","text":"DONE","expected":"DONE"}}
+{"ts":"2026-02-26T10:00:01Z","component":"verify","event":"passed","data":{"command":"npm test","duration_s":45}}
+{"ts":"2026-02-26T10:00:01Z","component":"stop-hook","event":"session_complete","data":{"reason":"completed"}}
+SLOW_LOG
+
+set +e; bash "$ANALYZE" "$QA_LOG" >/dev/null 2>&1; set -e
+FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+assert_contains "slow verify detected" "Slow verification" "$FINDINGS"
+
+rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
+
+# ============================================================
 # Test: Health score calculation
 # ============================================================
 
