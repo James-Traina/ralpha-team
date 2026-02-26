@@ -26,6 +26,7 @@ echo "Running verification: $VERIFY_COMMAND"
 
 qa_timer_start _VERIFY_CMD_TIMER
 set +e
+# eval is intentional: the user provides --verify-command (same trust model as a Makefile target)
 VERIFY_OUTPUT=$(eval "$VERIFY_COMMAND" 2>&1)
 VERIFY_EXIT=$?
 set -e

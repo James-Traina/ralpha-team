@@ -11,7 +11,7 @@ STOP_HOOK="$REPO_ROOT/hooks/stop-hook.sh"
 create_transcript() {
   local text="$1"
   local f="$TEST_TMPDIR/transcript.jsonl"
-  printf '{"role":"assistant","message":{"content":[{"type":"text","text":"%s"}]}}\n' "$text" > "$f"
+  jq -cn --arg t "$text" '{"role":"assistant","message":{"content":[{"type":"text","text":$t}]}}' > "$f"
   echo "$f"
 }
 
