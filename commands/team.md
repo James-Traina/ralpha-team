@@ -58,6 +58,10 @@ On each iteration of the loop:
 4. Do synthesis work yourself (merge results, resolve conflicts)
 5. If all tasks are complete, run verification and assess completion
 
+**If things go wrong:**
+- If verification fails 2+ times in a row: re-read the error output, then consider reassigning the failing work to a debugger or simplifying the approach.
+- If a teammate is stuck: reassign their task to another teammate or break it into smaller subtasks.
+
 ### Phase 4: Complete
 When all work is done and verified:
 1. Ensure the verification command passes

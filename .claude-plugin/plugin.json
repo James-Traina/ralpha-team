@@ -8,11 +8,11 @@
   "repository": "https://github.com/James-Traina/ralpha-team",
   "license": "MIT",
   "keywords": [
-    "ralph",
     "orchestration",
     "agent-teams",
-    "loop",
-    "autonomous",
-    "overnight"
+    "iterative-development",
+    "verification-loop",
+    "dual-gate",
+    "autonomous-coding"
   ]
 }

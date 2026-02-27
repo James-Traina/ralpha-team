@@ -161,7 +161,7 @@ if [[ "$PROMISE_DETECTED" = true ]]; then
       NEXT=$(bump_iteration)
       VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -20)
       qa_log_num "stop-hook" "verify_failed_after_promise" "next_iteration=$NEXT"
-      block_and_continue "Ralpha iteration $NEXT | Promise detected but VERIFICATION FAILED. Fix the issues and try again. Verification output: $VERIFY_SNIPPET"
+      block_and_continue "Ralpha iteration $NEXT | Promise detected but VERIFICATION FAILED. Read the failure output carefully and fix the root cause, not symptoms. Verification output: $VERIFY_SNIPPET"
     fi
   else
     complete_session "completed" "Promise detected. Completion confirmed."
@@ -179,9 +179,9 @@ else
 fi
 
 if [[ "$MODE" = "team" ]]; then
-  SYSTEM_MSG="Ralpha iteration $NEXT [TEAM mode] | $PROMISE_MSG | Check teammate inboxes and task status."
+  SYSTEM_MSG="Ralpha iteration $NEXT [TEAM mode] | $PROMISE_MSG | Check teammate inboxes and task status. If stuck, try a different approach or simplify the task."
 else
-  SYSTEM_MSG="Ralpha iteration $NEXT [SOLO mode] | $PROMISE_MSG"
+  SYSTEM_MSG="Ralpha iteration $NEXT [SOLO mode] | $PROMISE_MSG | If stuck, try a different approach or simplify the task."
 fi
 
 PROMPT_TEXT=$(ralpha_parse_prompt)

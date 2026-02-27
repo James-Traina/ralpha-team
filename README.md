@@ -4,6 +4,14 @@ A Claude Code plugin that runs your prompt in a loop until the job is actually d
 
 You give it an objective, a way to check completion, and optionally a team size. It keeps going — feeding the same prompt back, iteration after iteration — until the verification command passes.
 
+## Install
+
+```bash
+claude plugin install https://github.com/James-Traina/Ralpha-Team
+```
+
+Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in your Claude Code settings for team mode.
+
 ## How it works
 
 Two modes:
@@ -15,8 +23,6 @@ Two modes:
 Both modes use the same completion mechanism: a dual gate. Claude has to (1) explicitly claim it's done by outputting a promise phrase, and (2) a verification command you provide has to exit 0. If Claude says it's done but the tests fail, the loop continues with the failure output fed back in.
 
 ## Quick start
-
-Install as a Claude Code plugin (drop this repo into your plugins), then:
 
 ```bash
 # Solo: fix a bug, loop until tests pass
@@ -32,8 +38,6 @@ Install as a Claude Code plugin (drop this repo into your plugins), then:
   --max-iterations 30 \
   --team-size 4
 ```
-
-Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in your Claude Code settings for team mode.
 
 ## Options
 
@@ -86,18 +90,23 @@ Every session writes structured logs to `.claude/ralpha-qa.jsonl`. After a sessi
 
 This generates a findings report (`ralpha-qa-findings.md`) with a health score and prioritized issues: stuck loops, flaky verification, idle teammates, excessive iterations. The report also suggests a follow-up command to fix the issues it found — so the plugin can improve itself.
 
-## Layout
+## Components
 
-```
-commands/    slash commands (team, solo, cancel, status, qa, help)
-agents/      persona definitions
-hooks/       stop-hook, task-completed, teammate-idle
-scripts/     setup, parsing, verification, QA logging, reports
-tests/       262 tests across 9 files
-```
+| Category | Count | Location |
+|----------|-------|----------|
+| Commands | 6 | `commands/` — team, solo, cancel, status, qa, help |
+| Agents | 5 | `agents/` — architect, implementer, tester, reviewer, debugger |
+| Hooks | 5 | `hooks/` — session-start, stop, task-completed, teammate-idle, pre-compact |
+| Scripts | 7 | `scripts/` — session-init, setup, parsing, verification, QA logging, reports |
+| Skills | 1 | `skills/` — ralpha-orchestration |
+| Tests | 262+ | `tests/` — 11 test files |
 
 Run `bash tests/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
 
 ## Background
 
 This came out of combining two ideas: the "ralph loop" (feed the same prompt back, let the agent see its own work accumulate in files and git) and Claude Code's agent teams (multiple sessions sharing a task list). Most of the hard bugs were in the state file — YAML frontmatter on top, freeform prompt body below — and making sure the hooks don't corrupt a prompt that happens to contain `iteration:` or `---` as regular text.
+
+## License
+
+MIT

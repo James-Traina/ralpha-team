@@ -22,5 +22,5 @@ if [[ "$MODE" != "team" ]]; then
 fi
 
 qa_log "idle-hook" "nudge" "mode=$MODE"
-echo "Before going idle: run TaskList to check for unclaimed tasks (status: pending, no owner, not blocked). If any exist, claim one with TaskUpdate (set owner to your name) and work on it. If all tasks are complete or claimed, you may go idle."
+echo "Before going idle: run TaskList to check for unclaimed tasks (status: pending, no owner, not blocked). If any exist, claim one with TaskUpdate (set owner to your name) and work on it. If you have already checked and no unclaimed tasks remain, send a message to the lead confirming all your work is done, then stop working."
 exit 2

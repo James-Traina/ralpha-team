@@ -30,7 +30,8 @@ If no persona was set, work as a generalist.
 1. **Read your previous work** — check modified files, git log, test results
 2. **Identify what's left** — compare current state against the objective
 3. **Make incremental progress** — don't try to do everything at once
-4. **Run the verification command** (if set) to check your progress
+4. **Self-check often** — after each meaningful change, run the verification command (if set) to catch regressions immediately — don't wait until the end of the iteration
+5. **Run the verification command** (if set) to check your progress
 5. **Only output the completion promise when it's genuinely TRUE**
 
 ## Completion

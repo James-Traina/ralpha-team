@@ -144,7 +144,9 @@ quote_yaml() {
   if [[ "$val" = "null" ]]; then
     echo "null"
   else
-    echo "\"$val\""
+    local escaped
+    escaped=$(printf '%s' "$val" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    echo "\"$escaped\""
   fi
 }
 
@@ -201,4 +203,8 @@ if [[ "$COMPLETION_PROMISE" != "null" ]]; then
   fi
   echo "Output the promise ONLY when the statement is genuinely TRUE."
   echo "======================="
+  if [[ "$VERIFY_COMMAND" != "null" ]]; then
+    echo ""
+    echo "Tip: Run your verify command now to confirm it works: $VERIFY_COMMAND"
+  fi
 fi

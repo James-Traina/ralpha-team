@@ -4,3 +4,9 @@
 # Generated reports and QA artifacts
 ralpha-report.md
 ralpha-qa-findings.md
+
+# OS and editor artifacts
+.DS_Store
+
+# Serena project config (local only)
+.serena/
