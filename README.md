@@ -28,7 +28,7 @@ Both modes use the same completion mechanism: a dual gate. Claude has to (1) exp
 # Solo: fix a bug, loop until tests pass
 /ralpha-team:solo Fix the token refresh race condition \
   --completion-promise 'FIXED' \
-  --verify-command 'pytest tests/test_auth.py' \
+  --verify-command 'pytest test/test_auth.py' \
   --max-iterations 10
 
 # Team: build a feature with 4 parallel agents
@@ -99,9 +99,9 @@ This generates a findings report (`ralpha-qa-findings.md`) with a health score a
 | Hooks | 5 | `hooks/` — session-start, stop, task-completed, teammate-idle, pre-compact |
 | Scripts | 7 | `scripts/` — session-init, setup, parsing, verification, QA logging, reports |
 | Skills | 1 | `skills/` — ralpha-orchestration |
-| Tests | 262+ | `tests/` — 11 test files |
+| Tests | 262+ | `test/` — 11 test files |
 
-Run `bash tests/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
+Run `bash test/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
 
 ## Background
 

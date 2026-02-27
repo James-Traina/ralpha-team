@@ -69,7 +69,7 @@ Both must pass simultaneously. If promise is detected but verification fails, th
 # Quick solo bug fix
 /ralpha-team:solo Fix the token refresh race condition \
   --completion-promise 'FIXED' \
-  --verify-command 'pytest tests/test_auth.py' \
+  --verify-command 'pytest test/test_auth.py' \
   --max-iterations 10
 ```
 

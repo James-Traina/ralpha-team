@@ -42,7 +42,7 @@ Objective: "Build a REST API with auth, CRUD, and tests"
 | Design API schema + routes | Architect | `docs/api-spec.md` |
 | Implement auth module | Implementer | `src/auth/*` |
 | Implement CRUD endpoints | Implementer | `src/routes/*`, `src/models/*` |
-| Write test suite | Tester | `tests/*` |
+| Write test suite | Tester | `test/*` |
 | Review + integration | Reviewer | (read-only) |
 
 ## Persona Selection

@@ -163,7 +163,7 @@ README_SKILL_COUNT=$(grep -oE 'Skills \| [0-9]+' "$REPO_ROOT/README.md" | grep -
 assert_eq "README skill count matches filesystem" "$ACTUAL_SKILLS" "$README_SKILL_COUNT"
 
 # Test file count
-ACTUAL_TEST_FILES=$(find "$REPO_ROOT/tests" -name "test-*.sh" -not -name "test-runner.sh" | wc -l | tr -d ' ')
+ACTUAL_TEST_FILES=$(find "$REPO_ROOT/test" -name "test-*.sh" -not -name "test-runner.sh" | wc -l | tr -d ' ')
 README_TEST_COUNT=$(grep -oE '[0-9]+ test files' "$REPO_ROOT/README.md" | grep -oE '[0-9]+')
 assert_eq "README test file count matches filesystem" "$ACTUAL_TEST_FILES" "$README_TEST_COUNT"
 

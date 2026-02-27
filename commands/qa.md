@@ -24,7 +24,7 @@ If there are MUST-FIX findings, recommend running a self-improvement cycle:
 ```
 /ralpha-team:solo Address the MUST-FIX findings in ralpha-qa-findings.md \
   --completion-promise 'ALL FINDINGS ADDRESSED' \
-  --verify-command 'bash tests/test-runner.sh' \
+  --verify-command 'bash test/test-runner.sh' \
   --max-iterations 10
 ```
 

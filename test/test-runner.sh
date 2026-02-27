@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Ralpha-Team test runner
-# Usage: ./tests/test-runner.sh [test-file...]
-# Runs all test-*.sh files in the tests/ directory, or specific files if given.
+# Usage: ./test/test-runner.sh [test-file...]
+# Runs all test-*.sh files in the test/ directory, or specific files if given.
 
 set -euo pipefail
 
