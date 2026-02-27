@@ -33,7 +33,7 @@ State: `.claude/ralpha-team.local.md` | QA log: `.claude/ralpha-qa.jsonl`
 ## Development
 
 ### Testing
-- Run: `bash test/test-runner.sh` (312 tests across 11 files)
+- Run: `bash test/test-runner.sh` (294 tests across 10 files)
 - Use `jq -cn --arg t "$text" '{...}'` for JSON in tests, never `printf`
 
 ### Critical Invariant: Frontmatter Scoping

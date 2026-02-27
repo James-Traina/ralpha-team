@@ -13,19 +13,19 @@ setup_test_env
 echo "  -- JSON validity --"
 
 set +e
-python3 -c "import json; json.load(open('$REPO_ROOT/.claude-plugin/plugin.json'))" 2>/dev/null
+jq empty "$REPO_ROOT/.claude-plugin/plugin.json" 2>/dev/null
 EXIT=$?
 set -e
 assert_eq "plugin.json is valid JSON" 0 "$EXIT"
 
 set +e
-python3 -c "import json; json.load(open('$REPO_ROOT/hooks/hooks.json'))" 2>/dev/null
+jq empty "$REPO_ROOT/hooks/hooks.json" 2>/dev/null
 EXIT=$?
 set -e
 assert_eq "hooks.json is valid JSON" 0 "$EXIT"
 
 set +e
-python3 -c "import json; json.load(open('$REPO_ROOT/.mcp.json'))" 2>/dev/null
+jq empty "$REPO_ROOT/.mcp.json" 2>/dev/null
 EXIT=$?
 set -e
 assert_eq ".mcp.json is valid JSON" 0 "$EXIT"
@@ -33,10 +33,7 @@ assert_eq ".mcp.json is valid JSON" 0 "$EXIT"
 # plugin.json required fields
 for field in name version description license; do
   set +e
-  python3 -c "
-import json; d = json.load(open('$REPO_ROOT/.claude-plugin/plugin.json'))
-assert '$field' in d
-" 2>/dev/null
+  jq -e "has(\"$field\")" "$REPO_ROOT/.claude-plugin/plugin.json" >/dev/null 2>&1
   EXIT=$?
   set -e
   assert_eq "plugin.json has '$field' field" 0 "$EXIT"
@@ -50,44 +47,30 @@ echo "  -- hooks.json structure --"
 
 # Every hook entry has matcher and timeout
 set +e
-HOOK_ISSUES=$(python3 -c "
-import json
-d = json.load(open('$REPO_ROOT/hooks/hooks.json'))
-for event, matchers in d['hooks'].items():
-    for m in matchers:
-        if 'matcher' not in m:
-            print(f'{event}: missing matcher')
-        for h in m['hooks']:
-            if 'timeout' not in h:
-                print(f'{event}: missing timeout')
-" 2>/dev/null)
+HOOK_ISSUES=$(jq -r '
+  .hooks | to_entries[] | .key as $event |
+  .value[] |
+  (if has("matcher") | not then "\($event): missing matcher" else empty end),
+  (.hooks[] | if has("timeout") | not then "\($event): missing timeout" else empty end)
+' "$REPO_ROOT/hooks/hooks.json" 2>/dev/null)
 set -e
 assert_eq "all hooks have matcher + timeout" "" "$HOOK_ISSUES"
 
 # Valid event types
 VALID_EVENTS="SessionStart SessionEnd PreToolUse PostToolUse Stop SubagentStop UserPromptSubmit PreCompact Notification TaskCompleted TeammateIdle"
 set +e
-INVALID_EVENTS=$(python3 -c "
-import json
-valid = set('$VALID_EVENTS'.split())
-d = json.load(open('$REPO_ROOT/hooks/hooks.json'))
-for event in d['hooks'].keys():
-    if event not in valid:
-        print(event)
-" 2>/dev/null)
+INVALID_EVENTS=$(jq -r --arg valid "$VALID_EVENTS" '
+  ($valid | split(" ")) as $v |
+  .hooks | keys[] | select(. as $k | $v | index($k) | not)
+' "$REPO_ROOT/hooks/hooks.json" 2>/dev/null)
 set -e
 assert_eq "all hook events are valid" "" "$INVALID_EVENTS"
 
 # SessionStart uses portable CLAUDE_PLUGIN_ROOT path
 set +e
-SESSION_CMD=$(python3 -c "
-import json
-d = json.load(open('$REPO_ROOT/hooks/hooks.json'))
-for m in d['hooks'].get('SessionStart', []):
-    for h in m['hooks']:
-        if h['type'] == 'command':
-            print(h['command'])
-" 2>/dev/null)
+SESSION_CMD=$(jq -r '
+  .hooks.SessionStart[]?.hooks[] | select(.type == "command") | .command
+' "$REPO_ROOT/hooks/hooks.json" 2>/dev/null)
 set -e
 assert_contains "SessionStart uses \${CLAUDE_PLUGIN_ROOT}" "CLAUDE_PLUGIN_ROOT" "$SESSION_CMD"
 
@@ -144,11 +127,7 @@ README_CMD_COUNT=$(grep -oE 'Commands \| [0-9]+' "$REPO_ROOT/README.md" | grep -
 assert_eq "README command count matches filesystem" "$ACTUAL_CMDS" "$README_CMD_COUNT"
 
 # Hook count
-ACTUAL_HOOKS=$(python3 -c "
-import json
-d = json.load(open('$REPO_ROOT/hooks/hooks.json'))
-print(len(d['hooks']))
-" 2>/dev/null)
+ACTUAL_HOOKS=$(jq '.hooks | length' "$REPO_ROOT/hooks/hooks.json" 2>/dev/null)
 README_HOOK_COUNT=$(grep -oE 'Hooks \| [0-9]+' "$REPO_ROOT/README.md" | grep -oE '[0-9]+')
 assert_eq "README hook count matches filesystem" "$ACTUAL_HOOKS" "$README_HOOK_COUNT"
 

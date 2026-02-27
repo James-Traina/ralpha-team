@@ -6,30 +6,6 @@ setup_test_env
 
 VERIFY="$REPO_ROOT/scripts/verify-completion.sh"
 
-# --- Helper: create state file ---
-create_state_with_verify() {
-  local cmd="$1"
-  local cmd_yaml
-  if [[ "$cmd" = "null" ]]; then cmd_yaml="null"; else cmd_yaml="\"$cmd\""; fi
-  cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<EOF
----
-active: true
-mode: solo
-iteration: 1
-max_iterations: 0
-completion_promise: null
-verify_command: $cmd_yaml
-verify_passed: false
-team_name: ralpha-test
-team_size: 1
-persona: null
-started_at: "2026-02-26T08:00:00Z"
----
-
-test
-EOF
-}
-
 # ============================================================
 # Test: No state file → exit 1
 # ============================================================
@@ -45,7 +21,7 @@ assert_contains "no state message" "No active ralpha session" "$OUTPUT"
 # Test: No verify command → exit 0 (pass)
 # ============================================================
 
-create_state_with_verify "null"
+create_state "solo" 1 0 "null" "null"
 
 set +e
 OUTPUT=$(bash "$VERIFY" 2>&1)
@@ -58,7 +34,7 @@ assert_contains "no verify message" "No verification command" "$OUTPUT"
 # Test: Passing verify command → exit 0
 # ============================================================
 
-create_state_with_verify "true"
+create_state "solo" 1 0 "null" "true"
 
 set +e
 OUTPUT=$(bash "$VERIFY" 2>&1)
@@ -71,7 +47,7 @@ assert_contains "verify passed" "PASSED" "$OUTPUT"
 # Test: Failing verify command → exit non-zero
 # ============================================================
 
-create_state_with_verify "false"
+create_state "solo" 1 0 "null" "false"
 
 set +e
 OUTPUT=$(bash "$VERIFY" 2>&1)
@@ -84,7 +60,7 @@ assert_contains "verify failed" "FAILED" "$OUTPUT"
 # Test: Verify command with output
 # ============================================================
 
-create_state_with_verify "echo 'test output' && true"
+create_state "solo" 1 0 "null" "echo 'test output' && true"
 
 set +e
 OUTPUT=$(bash "$VERIFY" 2>&1)

@@ -99,7 +99,7 @@ This generates a findings report (`ralpha-qa-findings.md`) with a health score a
 | Hooks | 5 | `hooks/` — session-start, stop, task-completed, teammate-idle, pre-compact |
 | Scripts | 7 | `scripts/` — session-init, setup, parsing, verification, QA logging, reports |
 | Skills | 1 | `skills/` — ralpha-orchestration |
-| Tests | 262+ | `test/` — 11 test files |
+| Tests | 262+ | `test/` — 10 test files |
 
 Run `bash test/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
 

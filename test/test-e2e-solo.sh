@@ -8,17 +8,6 @@ setup_test_env
 SETUP="$REPO_ROOT/scripts/setup-ralpha.sh"
 STOP_HOOK="$REPO_ROOT/hooks/stop-hook.sh"
 
-create_transcript() {
-  local text="$1"
-  local f="$TEST_TMPDIR/transcript.jsonl"
-  jq -cn --arg t "$text" '{"role":"assistant","message":{"content":[{"type":"text","text":$t}]}}' > "$f"
-  echo "$f"
-}
-
-hook_input() {
-  printf '{"transcript_path":"%s"}' "$1"
-}
-
 # ============================================================
 # E2E: Solo loop: setup → 3 iterations → promise → exit
 # ============================================================

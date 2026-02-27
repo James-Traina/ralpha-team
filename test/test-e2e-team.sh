@@ -8,17 +8,6 @@ setup_test_env
 SETUP="$REPO_ROOT/scripts/setup-ralpha.sh"
 STOP_HOOK="$REPO_ROOT/hooks/stop-hook.sh"
 
-create_transcript() {
-  local text="$1"
-  local f="$TEST_TMPDIR/transcript.jsonl"
-  jq -cn --arg t "$text" '{"role":"assistant","message":{"content":[{"type":"text","text":$t}]}}' > "$f"
-  echo "$f"
-}
-
-hook_input() {
-  printf '{"transcript_path":"%s"}' "$1"
-}
-
 # ============================================================
 # E2E: Team mode setup
 # ============================================================
@@ -72,7 +61,9 @@ for persona in architect implementer tester reviewer debugger; do
   CONTENT=$(cat "$REPO_ROOT/agents/$persona.md")
   assert_contains "e2e team: $persona has name" "name: $persona" "$CONTENT"
   assert_contains "e2e team: $persona has description" "description:" "$CONTENT"
-  # Model field must be a valid Task tool model parameter
+  # Model field must exist and be a valid Task tool model parameter
+  set +e; grep -q "^model:" "$REPO_ROOT/agents/$persona.md"; MODEL_EXISTS=$?; set -e
+  assert_eq "e2e team: $persona has model field" 0 "$MODEL_EXISTS"
   MODEL=$(grep "^model:" "$REPO_ROOT/agents/$persona.md" | sed 's/model: *//')
   assert_contains "e2e team: $persona model is valid" "$MODEL" "sonnet opus haiku"
 done

@@ -9,17 +9,6 @@ STOP_HOOK="$REPO_ROOT/hooks/stop-hook.sh"
 ANALYZE="$REPO_ROOT/scripts/qa-analyze.sh"
 QA_LOG="$TEST_TMPDIR/.claude/ralpha-qa.jsonl"
 
-create_transcript() {
-  local text="$1"
-  local f="$TEST_TMPDIR/transcript.jsonl"
-  jq -cn --arg t "$text" '{"role":"assistant","message":{"content":[{"type":"text","text":$t}]}}' > "$f"
-  echo "$f"
-}
-
-hook_input() {
-  printf '{"transcript_path":"%s"}' "$1"
-}
-
 # ============================================================
 # Test: qa-log.sh writes valid JSONL
 # ============================================================

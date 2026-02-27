@@ -115,7 +115,44 @@ assert_file_not_exists() {
   fi
 }
 
-export -f _bump assert_eq assert_contains assert_not_contains assert_exit assert_file_exists assert_file_not_exists setup_test_env teardown_test_env
+# --- Shared test fixtures (used by multiple test files) ---
+
+create_transcript() {
+  local text="$1"
+  local f="$TEST_TMPDIR/transcript.jsonl"
+  jq -cn --arg t "$text" '{"role":"assistant","message":{"content":[{"type":"text","text":$t}]}}' > "$f"
+  echo "$f"
+}
+
+hook_input() {
+  printf '{"transcript_path":"%s"}' "$1"
+}
+
+create_state() {
+  local mode="${1:-solo}" iteration="${2:-1}" max="${3:-0}" promise="${4:-null}" verify="${5:-null}"
+  local promise_yaml verify_yaml
+  if [[ "$promise" = "null" ]]; then promise_yaml="null"; else promise_yaml="\"$promise\""; fi
+  if [[ "$verify" = "null" ]]; then verify_yaml="null"; else verify_yaml="\"$verify\""; fi
+  cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<EOF
+---
+active: true
+mode: $mode
+iteration: $iteration
+max_iterations: $max
+completion_promise: $promise_yaml
+verify_command: $verify_yaml
+verify_passed: false
+team_name: ralpha-test
+team_size: 1
+persona: null
+started_at: "2026-02-26T08:00:00Z"
+---
+
+Test prompt
+EOF
+}
+
+export -f _bump assert_eq assert_contains assert_not_contains assert_exit assert_file_exists assert_file_not_exists setup_test_env teardown_test_env create_transcript hook_input create_state
 
 # --- Run tests ---
 
