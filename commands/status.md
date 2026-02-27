@@ -1,5 +1,5 @@
 ---
-description: "Check Ralpha-Team session status"
+description: "Check ralpha-team session status"
 allowed-tools: ["Read(.claude/ralpha-team.local.md)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)"]
 hide-from-slash-command-tool: "true"
 ---

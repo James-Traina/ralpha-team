@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ralpha-Team Stop Hook
+# ralpha-team Stop Hook
 # Prevents session exit when a ralpha loop is active.
 # Solo mode: re-injects same prompt. Team mode: re-injects with teammate coordination instructions.
 

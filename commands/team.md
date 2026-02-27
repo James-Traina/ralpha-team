@@ -1,11 +1,11 @@
 ---
-description: "Start Ralpha-Team orchestrated loop (team mode)"
+description: "Start ralpha-team orchestrated loop (team mode)"
 argument-hint: "PROMPT [--max-iterations N] [--completion-promise TEXT] [--verify-command CMD] [--team-size N]"
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/generate-report.sh:*)", "Read(${CLAUDE_PLUGIN_ROOT}/agents/*.md)"]
 hide-from-slash-command-tool: "true"
 ---
 
-# Ralpha-Team Command
+# ralpha-team Command
 
 Execute the setup script in team mode:
 
@@ -13,7 +13,7 @@ Execute the setup script in team mode:
 "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh" --mode team $ARGUMENTS
 ```
 
-You are now the **lead orchestrator** of a Ralpha-Team session. Your role:
+You are now the **lead orchestrator** of a ralpha-team session. Your role:
 
 ## Orchestration Protocol
 

@@ -1,4 +1,4 @@
-# Ralpha-Team
+# ralpha-team
 
 Orchestrated iterative development loops with agent-teams. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json env.
 

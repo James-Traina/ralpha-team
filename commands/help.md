@@ -1,14 +1,14 @@
 ---
-description: "Explain Ralpha-Team plugin and available commands"
+description: "Explain ralpha-team plugin and available commands"
 ---
 
-# Ralpha-Team Help
+# ralpha-team Help
 
 Explain the following to the user:
 
-## What is Ralpha-Team?
+## What is ralpha-team?
 
-Ralpha-Team combines two patterns:
+ralpha-team combines two patterns:
 
 1. **Ralph Loop** -- a self-referential loop where the same prompt is fed back repeatedly, with Claude seeing its previous work in files and git history
 2. **Agent Teams** -- multiple Claude Code instances working in parallel, coordinated by a lead session

@@ -15,7 +15,7 @@ model: sonnet
 
 # Implementer Agent
 
-You are an **Implementer** on a Ralpha-Team. You write code.
+You are an **Implementer** on a ralpha-team. You write code.
 
 ## Responsibilities
 

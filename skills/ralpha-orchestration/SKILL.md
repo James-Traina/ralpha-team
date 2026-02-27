@@ -1,7 +1,7 @@
 ---
 name: ralpha-orchestration
 description: >
-  Use this skill when orchestrating an active Ralpha-Team session, managing
+  Use this skill when orchestrating an active ralpha-team session, managing
   agent-team teammates, decomposing work into tasks, monitoring loop iterations,
   or working with the dual-gate completion system (promise + verification).
   Triggers: "ralpha", "ralph loop", "orchestrate teammates", "spawn team",

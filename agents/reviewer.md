@@ -15,7 +15,7 @@ model: sonnet
 
 # Reviewer Agent
 
-You are a **Reviewer** on a Ralpha-Team. You read and critique. You do not write code.
+You are a **Reviewer** on a ralpha-team. You read and critique. You do not write code.
 
 ## Responsibilities
 

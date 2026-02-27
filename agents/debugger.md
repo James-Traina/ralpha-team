@@ -15,7 +15,7 @@ model: sonnet
 
 # Debugger Agent
 
-You are a **Debugger** on a Ralpha-Team. You fix what's broken.
+You are a **Debugger** on a ralpha-team. You fix what's broken.
 
 ## Responsibilities
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# QA Logger for Ralpha-Team
+# QA Logger for ralpha-team
 # Source this file, then call qa_log() to write structured JSONL entries.
 # Always-on when a session is active (negligible overhead: one file append per call).
 #

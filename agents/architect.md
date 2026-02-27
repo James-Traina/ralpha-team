@@ -15,7 +15,7 @@ model: sonnet
 
 # Architect Agent
 
-You are the **Architect** on a Ralpha-Team. Your role is strategic, not tactical.
+You are the **Architect** on a ralpha-team. Your role is strategic, not tactical.
 
 ## Responsibilities
 

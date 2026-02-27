@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# QA Analyzer for Ralpha-Team
+# QA Analyzer for ralpha-team
 # Reads .claude/ralpha-qa.jsonl, detects patterns, outputs prioritized findings.
 #
 # Usage: bash scripts/qa-analyze.sh [log-file]
@@ -152,7 +152,7 @@ HEALTH=$((100 - MUST_COUNT * 30 - SHOULD_COUNT * 10 - NICE_COUNT * 2))
 if [[ "$HEALTH" -lt 0 ]]; then HEALTH=0; fi
 
 cat > "$OUTPUT_FILE" <<EOF
-# Ralpha-Team QA Findings
+# ralpha-team QA Findings
 
 **Health Score: ${HEALTH}/100** | Mode: $SESSION_MODE | Iterations: $LAST_ITERATION/$MAX_ITER | Outcome: $COMPLETION_REASON
 

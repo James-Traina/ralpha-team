@@ -48,7 +48,7 @@ PROMISE_DISPLAY=$( [[ "$COMPLETION_PROMISE" != "null" ]] && echo "\`$COMPLETION_
 VERIFY_CMD_DISPLAY=$( [[ "$VERIFY_COMMAND" != "null" ]] && echo "\`$VERIFY_COMMAND\`" || echo "none" )
 
 cat > "$REPORT_FILE" <<EOF
-# Ralpha-Team Report
+# ralpha-team Report
 
 ## Session Summary
 

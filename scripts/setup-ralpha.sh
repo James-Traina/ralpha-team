@@ -17,7 +17,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     -h|--help)
       cat << 'HELP_EOF'
-Ralpha-Team - Orchestrated iterative development with agent-teams
+ralpha-team - Orchestrated iterative development with agent-teams
 
 USAGE:
   /ralpha-team:team [PROMPT...] [OPTIONS]

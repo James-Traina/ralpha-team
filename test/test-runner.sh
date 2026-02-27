@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ralpha-Team test runner
+# ralpha-team test runner
 # Usage: ./test/test-runner.sh [test-file...]
 # Runs all test-*.sh files in the test/ directory, or specific files if given.
 
@@ -167,7 +167,7 @@ else
 fi
 
 echo ""
-echo "Ralpha-Team Test Suite"
+echo "ralpha-team Test Suite"
 echo "======================"
 
 for test_file in "${TEST_FILES[@]}"; do

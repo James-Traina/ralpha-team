@@ -1,4 +1,4 @@
-# Ralpha-Team
+# ralpha-team
 
 A Claude Code plugin that runs your prompt in a loop until the job is actually done.
 
@@ -7,7 +7,7 @@ You give it an objective, a way to check completion, and optionally a team size.
 ## Install
 
 ```bash
-claude plugin install https://github.com/James-Traina/Ralpha-Team
+claude plugin install https://github.com/James-Traina/ralpha-team
 ```
 
 Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in your Claude Code settings for team mode.
