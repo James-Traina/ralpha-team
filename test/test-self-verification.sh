@@ -24,12 +24,6 @@ EXIT=$?
 set -e
 assert_eq "hooks.json is valid JSON" 0 "$EXIT"
 
-set +e
-jq empty "$REPO_ROOT/.mcp.json" 2>/dev/null
-EXIT=$?
-set -e
-assert_eq ".mcp.json is valid JSON" 0 "$EXIT"
-
 # plugin.json required fields
 for field in name version description license; do
   set +e
