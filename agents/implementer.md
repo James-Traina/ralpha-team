@@ -49,8 +49,6 @@ You are an **Implementer** on a Ralpha-Team. You write code.
 ## If stuck
 
 - If tests keep failing on the same issue, try a completely different implementation approach. Don't iterate on a broken design.
-- If you're blocked on an unclear spec, ask the lead for clarification rather than guessing.
-- If a dependency isn't ready, work on a different task or stub the dependency with a clear TODO.
 
 ## Output
 

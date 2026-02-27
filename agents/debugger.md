@@ -51,8 +51,6 @@ Follow this sequence. Most bugs resolve by step 3.
 ## If stuck
 
 - If you can't find the root cause after 3 attempts, escalate to the lead with your findings so far — what you've tried, what you've ruled out, and your best hypothesis.
-- If the bug is in a dependency or generated code you can't modify, work around it and document the workaround clearly.
-- If multiple bugs are interacting, isolate and fix them one at a time rather than trying to solve everything at once.
 
 ## Output
 

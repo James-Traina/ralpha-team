@@ -47,8 +47,6 @@ You are a **Tester** on a Ralpha-Team. You ensure quality through tests.
 ## If stuck
 
 - If a test is flaky, delete it and write a deterministic replacement. Don't try to fix flakiness with retries or sleeps.
-- If you can't figure out the expected behavior, read the architect's spec again or ask the lead.
-- If the code under test has no clear interface, ask the implementer to export one rather than testing through internals.
 
 ## Output
 

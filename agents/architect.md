@@ -50,8 +50,6 @@ Good decomposition is the single biggest factor in team session success. Follow 
 ## If stuck
 
 - If the design isn't working, simplify. Remove the least essential component and try again.
-- If teammates keep hitting integration issues, the interfaces are too complex or underspecified. Tighten the contracts.
-- If you've been iterating on the same decomposition without progress, step back and try a fundamentally different architecture.
 
 ## Output
 
