@@ -7,42 +7,6 @@ setup_test_env
 SETUP="$REPO_ROOT/scripts/setup-ralpha.sh"
 STOP_HOOK="$REPO_ROOT/hooks/stop-hook.sh"
 
-create_transcript() {
-  local text="$1"
-  local f="$TEST_TMPDIR/transcript.jsonl"
-  # Use jq -c for compact JSONL (matches stop-hook.sh grep pattern)
-  jq -cn --arg t "$text" '{"role":"assistant","message":{"content":[{"type":"text","text":$t}]}}' > "$f"
-  echo "$f"
-}
-
-hook_input() {
-  printf '{"transcript_path":"%s"}' "$1"
-}
-
-create_state() {
-  local mode="${1:-solo}" iteration="${2:-1}" max="${3:-0}" promise="${4:-null}" verify="${5:-null}"
-  local promise_yaml verify_yaml
-  if [[ "$promise" = "null" ]]; then promise_yaml="null"; else promise_yaml="\"$promise\""; fi
-  if [[ "$verify" = "null" ]]; then verify_yaml="null"; else verify_yaml="\"$verify\""; fi
-  cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<EOF
----
-active: true
-mode: $mode
-iteration: $iteration
-max_iterations: $max
-completion_promise: $promise_yaml
-verify_command: $verify_yaml
-verify_passed: false
-team_name: ralpha-test
-team_size: 1
-persona: null
-started_at: "2026-02-26T08:00:00Z"
----
-
-Test prompt
-EOF
-}
-
 # ============================================================
 # Edge: Promise with special characters
 # ============================================================
@@ -88,6 +52,7 @@ echo '{"role":"user","message":{"content":[{"type":"text","text":"hello"}]}}' > 
 set +e; OUTPUT=$(hook_input "$EMPTY_TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
 assert_exit "edge: no assistant msgs exits 0" 0 $EXIT
 assert_contains "edge: no assistant msgs warning" "No assistant messages" "$OUTPUT"
+assert_file_not_exists "edge: no assistant msgs cleans state" "$TEST_TMPDIR/.claude/ralpha-team.local.md"
 
 # ============================================================
 # Edge: Corrupted max_iterations
@@ -115,6 +80,7 @@ TRANSCRIPT=$(create_transcript "hello")
 set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
 assert_exit "edge: corrupted max_iterations exits 0" 0 $EXIT
 assert_contains "edge: corrupted max_iterations warning" "corrupted" "$OUTPUT"
+assert_file_not_exists "edge: corrupted max_iterations cleans state" "$TEST_TMPDIR/.claude/ralpha-team.local.md"
 
 # ============================================================
 # Edge: Multiple promise tags (first one wins)
@@ -294,5 +260,41 @@ printf '{ "role":"assistant" , "message":{"content":[{"type":"text","text":"just
 set +e; OUTPUT=$(hook_input "$SPACED_TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
 assert_exit "edge: mixed spacing exits 0" 0 $EXIT
 assert_contains "edge: mixed spacing continues loop" '"block"' "$OUTPUT"
+
+# ============================================================
+# Edge: Embedded quotes in completion-promise survive YAML roundtrip
+# ============================================================
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+OUTPUT=$(bash "$SETUP" --mode solo "test" --completion-promise 'Fix "auth" module' 2>&1)
+EXIT=$?
+assert_exit "edge: quoted promise setup exits 0" 0 $EXIT
+
+source "$REPO_ROOT/scripts/parse-state.sh"
+ralpha_load_frontmatter
+PARSED_PROMISE=$(ralpha_parse_field "completion_promise")
+assert_eq "edge: quoted promise roundtrips" 'Fix "auth" module' "$PARSED_PROMISE"
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+
+# ============================================================
+# Edge: No state file → allow exit silently
+# ============================================================
+
+rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
+TRANSCRIPT=$(create_transcript "hello world")
+set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
+assert_exit "edge: no state file → exit 0" 0 $EXIT
+assert_eq "edge: no state file → no output" "" "$OUTPUT"
+
+# ============================================================
+# Edge: Promise with extra whitespace → still matches
+# ============================================================
+
+create_state "solo" 2 0 "ALL DONE" "null"
+TRANSCRIPT=$(create_transcript "<promise>  ALL DONE  </promise>")
+set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
+assert_exit "edge: whitespace promise → exit 0" 0 $EXIT
+assert_contains "edge: whitespace promise detected" "Promise detected" "$OUTPUT"
 
 teardown_test_env

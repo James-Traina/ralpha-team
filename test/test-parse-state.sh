@@ -4,8 +4,8 @@
 
 setup_test_env
 
-# --- Helper: create a state file ---
-create_state() {
+# --- Helper: fixed state for parse testing (shadows shared create_state) ---
+create_parse_test_state() {
   cat > "$TEST_TMPDIR/.claude/ralpha-team.local.md" <<'STATE'
 ---
 active: true
@@ -25,7 +25,7 @@ Build a REST API with auth and tests
 STATE
 }
 
-create_state
+create_parse_test_state
 source "$REPO_ROOT/scripts/parse-state.sh"
 
 # Test: RALPHA_STATE_FILE path

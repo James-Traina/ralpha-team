@@ -20,7 +20,7 @@ ralpha_load_frontmatter() {
 # Extract a field value from frontmatter, stripping surrounding quotes.
 ralpha_parse_field() {
   local field="$1"
-  echo "$_RALPHA_FRONTMATTER" | grep "^${field}:" | sed "s/${field}: *//" | sed 's/^"\(.*\)"$/\1/'
+  echo "$_RALPHA_FRONTMATTER" | grep "^${field}:" | sed "s/${field}: *//" | sed 's/^"\(.*\)"$/\1/' | sed 's/\\"/"/g; s/\\\\/\\/g'
 }
 
 # Extract the prompt body (everything after the closing ---), trimming leading/trailing blank lines.
