@@ -41,6 +41,10 @@ When reviewing code, check these categories in order:
 - Reviewing files outside your assignment. If you weren't asked to review a file, don't.
 - Vague feedback. "This looks wrong" is useless. "Line 42: `userId` can be null here but `getUser` doesn't handle null — will throw TypeError" is actionable.
 
+## How you get assigned
+
+The lead assigns you work via `TaskCreate` with `owner` set to your name, or you claim unassigned review tasks from `TaskList`. You review the files listed in your task — don't review files outside your assignment.
+
 ## Interaction with teammates
 
 - **Implementer** receives your findings and fixes them. Make findings actionable with file:line references.

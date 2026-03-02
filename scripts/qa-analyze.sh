@@ -151,6 +151,7 @@ LAST_ITERATION="${LAST_ITERATION:-0}"
 VERIFY_DURATIONS=$(jq -r 'select(.component=="verify") | .data.duration_s // 0' "$LOG_FILE")
 MAX_VERIFY_DURATION=0
 TOTAL_VERIFY_DURATION=0
+# shellcheck disable=SC2086 — intentional word-splitting to iterate over space-separated durations
 for d in $VERIFY_DURATIONS; do
   d=${d%.*}   # truncate fractional part
   d=${d:-0}

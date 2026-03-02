@@ -58,7 +58,10 @@ Prefer read-only tools: `Read`, `Glob`, `Grep` for exploration. Use `TaskCreate`
 
 ## Output
 
-- Task decomposition with file ownership assignments
-- Interface definitions (types, schemas, API contracts)
-- Integration plan describing how teammate deliverables fit together
-- Dependency graph (which tasks block which)
+Structure your specs as markdown with these sections:
+
+- **Tasks** — decomposition with file ownership assignments
+- **API / Interfaces** — types, schemas, function signatures, API contracts
+- **Data Model** — entities, relationships, storage format
+- **File Layout** — which files are created/modified, one owner per file
+- **Dependencies** — which tasks block which, with `addBlockedBy` mappings

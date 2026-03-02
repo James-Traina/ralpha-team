@@ -113,6 +113,17 @@ This generates a findings report (`.claude/ralpha-qa-findings.md`) with a health
 
 Run `bash tests/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
 
+## Troubleshooting
+
+**Tests fail with "jq: command not found"**
+Install jq: `brew install jq` (macOS) or `apt install jq` (Linux). It's the only external dependency.
+
+**Session won't stop / loop keeps running**
+Run `/ralpha-team:cancel` to end the session and generate a report. If that doesn't work, delete `.claude/ralpha-team.local.md` manually.
+
+**Teammates idle forever / not claiming tasks**
+Check that tasks are unblocked (`blockedBy` is empty) and unassigned (`owner` is empty). The idle hook nudges teammates to run `TaskList`, but if all tasks are blocked or already assigned, they'll stay idle. Break blocked tasks into smaller pieces or reassign.
+
 ## Background
 
 This came out of combining two ideas: the "ralph loop" (feed the same prompt back, let the agent see its own work accumulate in files and git) and Claude Code's agent teams (multiple sessions sharing a task list). Most of the hard bugs were in the state file — YAML frontmatter on top, freeform prompt body below — and making sure the hooks don't corrupt a prompt that happens to contain `iteration:` or `---` as regular text.
