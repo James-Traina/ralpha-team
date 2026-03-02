@@ -25,7 +25,10 @@ ralpha_parse_field() {
     return 1
   fi
   local field="$1"
-  echo "$_RALPHA_FRONTMATTER" | grep "^${field}:" | sed "s/${field}: *//" | sed 's/^"\(.*\)"$/\1/' | sed 's/\\"/"/g; s/\\\\/\\/g'
+  # Unescape order: strip quotes, then \" → ", then \n → newline, then \\ → \.
+  # The \n unescape MUST come before \\ unescape so that \\n (literal backslash + n) isn't misread.
+  # Uses printf instead of echo to avoid shells (zsh, bash+xpg_echo) interpreting \n in the data.
+  printf '%s\n' "$_RALPHA_FRONTMATTER" | grep "^${field}:" | sed "s/${field}: *//" | sed 's/^"\(.*\)"$/\1/' | sed 's/\\"/"/g' | sed 's/\\n/\n/g' | sed 's/\\\\/\\/g'
 }
 
 # Extract the prompt body (everything after the closing ---), trimming leading/trailing blank lines.

@@ -140,12 +140,14 @@ set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; se
 assert_contains "whitespace in promise: detected" "Promise detected" "$OUTPUT"
 
 # ============================================================
-# Edge: No state file → exit 0 (allow exit)
+# Edge: Newline in promise survives YAML roundtrip (B1 fix)
 # ============================================================
 
 rm -f "$TEST_TMPDIR/.claude/ralpha-team.local.md"
-TRANSCRIPT=$(create_transcript "hello world")
-set +e; OUTPUT=$(hook_input "$TRANSCRIPT" | bash "$STOP_HOOK" 2>&1); EXIT=$?; set -e
-assert_exit "no state file → exit 0" 0 $EXIT
+bash "$SETUP" --mode solo "test" --completion-promise $'line1\nline2' --verify-command "true" --max-iterations 5 >/dev/null 2>&1
+source "$REPO_ROOT/scripts/parse-state.sh"
+ralpha_load_frontmatter
+PROMISE=$(ralpha_parse_field "completion_promise")
+assert_eq "newline in promise survives YAML roundtrip" $'line1\nline2' "$PROMISE"
 
 teardown_test_env

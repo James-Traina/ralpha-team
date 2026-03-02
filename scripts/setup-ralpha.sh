@@ -168,7 +168,11 @@ quote_yaml() {
     echo "null"
   else
     local escaped
-    escaped=$(printf '%s' "$val" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    # Order matters: escape backslashes first, then quotes, then newlines.
+    # Newlines become literal \n in YAML double-quoted strings.
+    # Uses RS (record separator 0x1E) as intermediate because macOS sed lacks \036 support.
+    local RS=$'\036'
+    escaped=$(printf '%s' "$val" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n' "$RS" | sed "s/${RS}/\\\\n/g")
     echo "\"$escaped\""
   fi
 }
