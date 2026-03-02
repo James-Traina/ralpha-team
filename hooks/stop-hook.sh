@@ -39,7 +39,10 @@ complete_session() {
   qa_log "stop-hook" "session_complete" "reason=$reason"
   echo "Ralpha: $2"
   if [[ -f "$SCRIPT_DIR/qa-analyze.sh" ]]; then
-    bash "$SCRIPT_DIR/qa-analyze.sh" --report "$reason" 2>/dev/null || true
+    if ! bash "$SCRIPT_DIR/qa-analyze.sh" --report "$reason" 2>&1; then
+      echo "WARNING: Report generation failed." >&2
+      qa_log "stop-hook" "report_failed" "reason=$reason"
+    fi
   fi
   rm -f "$RALPHA_STATE_FILE"
   exit 0

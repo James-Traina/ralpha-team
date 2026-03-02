@@ -4,14 +4,20 @@
 # Reads .claude/ralpha-qa.jsonl, detects patterns, outputs prioritized findings.
 # Also generates session reports via --report flag.
 #
-# Usage:
+# Usage (--report must be the first argument; modes are mutually exclusive):
 #   bash scripts/qa-analyze.sh [log-file]          # QA analysis → .claude/ralpha-qa-findings.md
+#     Default log: .claude/ralpha-qa.jsonl
 #   bash scripts/qa-analyze.sh --report <reason>    # Session report → ralpha-report.md
-# Default log: .claude/ralpha-qa.jsonl
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# jq is required by both modes (report mode uses qa-log.sh which depends on jq)
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: 'jq' is required but was not found." >&2
+  exit 1
+fi
 
 # --- Session report mode ---
 if [[ "${1:-}" = "--report" ]]; then
@@ -45,7 +51,11 @@ if [[ "${1:-}" = "--report" ]]; then
     GIT_LOG=$(git log --oneline --since="$STARTED_AT" 2>/dev/null || echo "(no commits)")
   fi
 
-  MAX_DISPLAY=$( [[ $MAX_ITERATIONS -gt 0 ]] && echo "$MAX_ITERATIONS" || echo "unlimited" )
+  if [[ "$MAX_ITERATIONS" =~ ^[0-9]+$ ]] && [[ $MAX_ITERATIONS -gt 0 ]]; then
+    MAX_DISPLAY="$MAX_ITERATIONS"
+  else
+    MAX_DISPLAY="unlimited"
+  fi
   if [[ "$VERIFY_PASSED" = "true" ]]; then
     VERIFY_DISPLAY="PASSED"
   elif [[ "$VERIFY_COMMAND" = "null" ]]; then
@@ -95,12 +105,8 @@ fi
 
 # --- QA analysis mode ---
 
-if ! command -v jq >/dev/null 2>&1; then
-  echo "Error: 'jq' is required for QA analysis but was not found." >&2
-  exit 1
-fi
-
 LOG_FILE="${1:-.claude/ralpha-qa.jsonl}"
+mkdir -p .claude
 OUTPUT_FILE=".claude/ralpha-qa-findings.md"
 
 if [[ ! -f "$LOG_FILE" ]]; then
