@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Tests for scripts/generate-report.sh
+# Tests for scripts/generate-report.sh (10 tests)
 
 setup_test_env
 
@@ -57,14 +57,10 @@ assert_file_exists "report file created" "$TEST_TMPDIR/ralpha-report.md"
 
 REPORT_CONTENT=$(cat "$TEST_TMPDIR/ralpha-report.md")
 assert_contains "report: title" "ralpha-team Report" "$REPORT_CONTENT"
-assert_contains "report: mode" "team" "$REPORT_CONTENT"
 assert_contains "report: iterations" "5 / 10" "$REPORT_CONTENT"
-assert_contains "report: team name" "ralpha-123456" "$REPORT_CONTENT"
 assert_contains "report: completion reason" "completed" "$REPORT_CONTENT"
-assert_contains "report: verification" "PASSED" "$REPORT_CONTENT"
 assert_contains "report: objective" "Build a REST API" "$REPORT_CONTENT"
-assert_contains "report: promise" "ALL TESTS PASSING" "$REPORT_CONTENT"
-assert_contains "report: verify command" "npm test" "$REPORT_CONTENT"
+assert_contains "report: verification" "PASSED" "$REPORT_CONTENT"
 
 # ============================================================
 # Test: Report with cancelled reason

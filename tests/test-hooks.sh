@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Tests for task-completed-hook.sh and teammate-idle-hook.sh
+# Tests for task-completed-hook.sh, teammate-idle-hook.sh, and hooks.json (10 tests)
 
 setup_test_env
 
@@ -90,5 +90,15 @@ EXIT=$?
 set -e
 assert_exit "idle: team mode → exit 2" 2 $EXIT
 assert_contains "idle: nudge mentions TaskList" "TaskList" "$OUTPUT"
+
+# ============================================================
+# hooks.json is valid JSON
+# ============================================================
+
+set +e
+jq empty "$REPO_ROOT/hooks/hooks.json" 2>/dev/null
+EXIT=$?
+set -e
+assert_eq "hooks.json is valid JSON" 0 "$EXIT"
 
 teardown_test_env
