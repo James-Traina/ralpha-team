@@ -23,7 +23,9 @@ Break the objective into discrete, parallelizable tasks. Use `TaskCreate` to reg
 Each task should:
 - Have a clear deliverable (a file, a test suite, a module)
 - Be completable by one agent independently
-- Not require editing the same files as another task
+- List the exact file paths the assignee owns (no two teammates may edit the same file)
+
+**File ownership is mandatory.** When spawning teammates, explicitly assign each one a set of files. If two tasks must touch the same file, serialize them (use `addBlockedBy`) rather than running them in parallel. Violations cause merge conflicts that waste iterations.
 
 Use `TaskUpdate` to set `addBlockedBy` for tasks with dependencies. This ensures teammates work in the correct order.
 

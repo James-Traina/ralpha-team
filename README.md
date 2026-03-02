@@ -10,7 +10,19 @@ You give it an objective, a way to check completion, and optionally a team size.
 claude plugin install https://github.com/James-Traina/ralpha-team
 ```
 
-Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in your Claude Code settings for team mode.
+## Setup
+
+Team mode requires the experimental agent-teams flag. Add this to your Claude Code settings (`~/.claude/settings.json`):
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+Solo mode works without this flag. Both modes require `jq` to be installed.
 
 ## How it works
 

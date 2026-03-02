@@ -127,7 +127,9 @@ qa_log_num "stop-hook" "transcript_parsed" "msg_length=$MSG_LENGTH"
 
 PROMISE_DETECTED=false
 if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
-  PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>(.*?)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
+  # Extract text between <promise>...</promise> tags. Uses [^<]* instead of .*? to prevent
+  # matching across nested or malformed tags (e.g. <promise>foo<promise>bar</promise>).
+  PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>([^<]*)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
   # Case-insensitive comparison with whitespace normalization
   PROMISE_LOWER=$(echo "$PROMISE_TEXT" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   EXPECTED_LOWER=$(echo "$COMPLETION_PROMISE" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
