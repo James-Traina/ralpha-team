@@ -38,8 +38,8 @@ complete_session() {
   local reason="$1"
   qa_log "stop-hook" "session_complete" "reason=$reason"
   echo "Ralpha: $2"
-  if [[ -f "$SCRIPT_DIR/generate-report.sh" ]]; then
-    bash "$SCRIPT_DIR/generate-report.sh" "$reason" 2>/dev/null || true
+  if [[ -f "$SCRIPT_DIR/qa-analyze.sh" ]]; then
+    bash "$SCRIPT_DIR/qa-analyze.sh" --report "$reason" 2>/dev/null || true
   fi
   rm -f "$RALPHA_STATE_FILE"
   exit 0

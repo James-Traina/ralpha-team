@@ -63,21 +63,21 @@ assert_eq "README test file count matches filesystem" "$ACTUAL_TEST_FILES" "$REA
 set +e
 HARDCODED=$(grep -rn '/Users/jat406\|/home/jat406' \
   "$REPO_ROOT/agents" "$REPO_ROOT/commands" "$REPO_ROOT/hooks" \
-  "$REPO_ROOT/scripts" "$REPO_ROOT/skills" "$REPO_ROOT/CLAUDE.md" \
+  "$REPO_ROOT/scripts" "$REPO_ROOT/CLAUDE.md" \
   "$REPO_ROOT/README.md" "$REPO_ROOT/.claude-plugin" 2>/dev/null || true)
 set -e
 assert_eq "no hardcoded personal paths" "" "$HARDCODED"
 
 # ============================================================
-# Session-init.sh: functional checks
+# setup-ralpha.sh --init: functional checks
 # ============================================================
 
 set +e
-OUTPUT=$(CLAUDE_PROJECT_DIR="$TEST_TMPDIR" CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="" bash "$REPO_ROOT/scripts/session-init.sh" 2>&1)
+OUTPUT=$(CLAUDE_PROJECT_DIR="$TEST_TMPDIR" CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS="" bash "$REPO_ROOT/scripts/setup-ralpha.sh" --init 2>&1)
 EXIT=$?
 set -e
-assert_eq "session-init.sh exits cleanly" 0 "$EXIT"
+assert_eq "setup-ralpha.sh --init exits cleanly" 0 "$EXIT"
 
-assert_contains "session-init.sh warns about missing env var" "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "$OUTPUT"
+assert_contains "setup-ralpha.sh --init warns about missing env var" "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "$OUTPUT"
 
 teardown_test_env

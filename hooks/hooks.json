@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/session-init.sh\"",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh --init",
             "timeout": 10
           }
         ]

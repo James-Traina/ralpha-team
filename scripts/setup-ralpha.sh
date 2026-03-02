@@ -1,8 +1,29 @@
 #!/bin/bash
 
 # Creates state file for in-session ralpha loop (solo or team mode).
+# Also handles --init mode for SessionStart validation.
 
 set -euo pipefail
+
+# --- SessionStart init mode ---
+if [[ "${1:-}" = "--init" ]]; then
+  warnings=""
+  if [ "${CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS:-}" != "1" ]; then
+    warnings="${warnings}ralpha-team: CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 is not set. Team mode will not work without it. Fix: add it to your Claude Code settings.json under \"env\" (Settings > Environment > CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1).\n"
+  fi
+  if ! command -v jq >/dev/null 2>&1; then
+    warnings="${warnings}ralpha-team: jq is not installed. State parsing and QA logging require it. Install with: brew install jq (macOS) or apt install jq (Linux).\n"
+  fi
+  PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+  STATE_FILE="$PROJECT_DIR/.claude/ralpha-team.local.md"
+  if [ -f "$STATE_FILE" ]; then
+    warnings="${warnings}ralpha-team: Found state file from a previous session (.claude/ralpha-team.local.md). Run /ralpha-team:cancel to clean up, or /ralpha-team:status to inspect it.\n"
+  fi
+  if [ -n "$warnings" ]; then
+    printf "%b" "$warnings"
+  fi
+  exit 0
+fi
 
 # Parse arguments
 PROMPT_PARTS=()
@@ -32,7 +53,7 @@ OPTIONS:
   --persona <name>               Persona for solo mode
   -h, --help                     Show this help
 
-Run /ralpha-team:help for full documentation and examples.
+See README.md for full documentation and examples.
 HELP_EOF
       exit 0
       ;;

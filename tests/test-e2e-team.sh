@@ -54,7 +54,7 @@ OUTPUT=$(bash "$SETUP" --mode team "Some task" --max-iterations 10 2>&1)
 
 # Simulate cancel: generate report then remove state
 set +e
-REPORT_OUTPUT=$(bash "$REPO_ROOT/scripts/generate-report.sh" "cancelled" 2>&1)
+REPORT_OUTPUT=$(bash "$REPO_ROOT/scripts/qa-analyze.sh" --report "cancelled" 2>&1)
 set -e
 assert_file_exists "cancel: report generated" "$TEST_TMPDIR/ralpha-report.md"
 

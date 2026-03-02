@@ -11,7 +11,6 @@ Orchestrated iterative development loops with agent-teams. Requires `CLAUDE_CODE
 | `/ralpha-team:cancel` | Cancel active session |
 | `/ralpha-team:status` | Check session status |
 | `/ralpha-team:qa` | Analyze QA telemetry from last session |
-| `/ralpha-team:help` | Full documentation |
 
 ## Lead Orchestrator Protocol
 

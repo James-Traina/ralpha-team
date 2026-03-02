@@ -1,7 +1,7 @@
 ---
 description: "Start ralpha-team orchestrated loop (team mode)"
 argument-hint: "PROMPT [--max-iterations N] [--completion-promise TEXT] [--verify-command CMD] [--team-size N]"
-allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/generate-report.sh:*)", "Read(${CLAUDE_PLUGIN_ROOT}/agents/*.md)"]
+allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/qa-analyze.sh:*)", "Read(${CLAUDE_PLUGIN_ROOT}/agents/*.md)"]
 hide-from-slash-command-tool: "true"
 ---
 
@@ -39,9 +39,9 @@ Create an agent team. Available personas are defined in `${CLAUDE_PLUGIN_ROOT}/a
 
 Choose personas based on the objective. A typical team: 1 architect + 2 implementers + 1 tester. Adjust based on task type.
 
-**Create the team** using `TeamCreate` with the `team_name` from the state file (`.claude/ralpha-team.local.md`). Then spawn teammates using the `Task` tool with the `team_name` parameter so they join the team and can access the shared task list.
+**Create the team** using `TeamCreate` with the `team_name` from the state file (`.claude/ralpha-team.local.md`). Then spawn teammates using the `Agent` tool with the `team_name` parameter so they join the team and can access the shared task list.
 
-Each agent file has a `model` field in its YAML frontmatter (e.g., `model: sonnet`). When calling the `Task` tool to spawn a teammate, pass this value as the `model` parameter so each persona runs on its intended model.
+Each agent file has a `model` field in its YAML frontmatter (e.g., `model: sonnet`). When calling the `Agent` tool to spawn a teammate, pass this value as the `model` parameter so each persona runs on its intended model.
 
 When spawning each teammate, include in their prompt:
 - The full persona definition (from the agent file)

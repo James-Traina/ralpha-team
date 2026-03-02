@@ -1,9 +1,8 @@
 # Ralpha-Team runtime state (created during sessions)
 .claude/
 
-# Generated reports and QA artifacts
+# Generated reports (ralpha-qa-findings.md is in .claude/ which is already ignored)
 ralpha-report.md
-ralpha-qa-findings.md
 
 # OS and editor artifacts
 .DS_Store

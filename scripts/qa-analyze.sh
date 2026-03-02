@@ -1,13 +1,99 @@
 #!/bin/bash
 
-# QA Analyzer for ralpha-team
+# QA Analyzer and Report Generator for ralpha-team
 # Reads .claude/ralpha-qa.jsonl, detects patterns, outputs prioritized findings.
+# Also generates session reports via --report flag.
 #
-# Usage: bash scripts/qa-analyze.sh [log-file]
+# Usage:
+#   bash scripts/qa-analyze.sh [log-file]          # QA analysis → .claude/ralpha-qa-findings.md
+#   bash scripts/qa-analyze.sh --report <reason>    # Session report → ralpha-report.md
 # Default log: .claude/ralpha-qa.jsonl
-# Output: ralpha-qa-findings.md
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# --- Session report mode ---
+if [[ "${1:-}" = "--report" ]]; then
+  COMPLETION_REASON="${2:-unknown}"
+  REPORT_FILE="ralpha-report.md"
+
+  source "$SCRIPT_DIR/parse-state.sh"
+  source "$SCRIPT_DIR/qa-log.sh"
+
+  if [[ ! -f "$RALPHA_STATE_FILE" ]]; then
+    echo "No active ralpha session - cannot generate report" >&2
+    exit 1
+  fi
+
+  ralpha_load_frontmatter
+  ITERATION=$(ralpha_parse_field "iteration")
+  MAX_ITERATIONS=$(ralpha_parse_field "max_iterations")
+  MODE=$(ralpha_parse_field "mode")
+  COMPLETION_PROMISE=$(ralpha_parse_field "completion_promise")
+  VERIFY_COMMAND=$(ralpha_parse_field "verify_command")
+  VERIFY_PASSED=$(ralpha_parse_field "verify_passed")
+  TEAM_NAME=$(ralpha_parse_field "team_name")
+  TEAM_SIZE=$(ralpha_parse_field "team_size")
+  STARTED_AT=$(ralpha_parse_field "started_at")
+  OBJECTIVE=$(ralpha_parse_prompt)
+
+  ENDED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+  GIT_LOG=""
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    GIT_LOG=$(git log --oneline --since="$STARTED_AT" 2>/dev/null || echo "(no commits)")
+  fi
+
+  MAX_DISPLAY=$( [[ $MAX_ITERATIONS -gt 0 ]] && echo "$MAX_ITERATIONS" || echo "unlimited" )
+  if [[ "$VERIFY_PASSED" = "true" ]]; then
+    VERIFY_DISPLAY="PASSED"
+  elif [[ "$VERIFY_COMMAND" = "null" ]]; then
+    VERIFY_DISPLAY="N/A"
+  else
+    VERIFY_DISPLAY="FAILED"
+  fi
+  PROMISE_DISPLAY=$( [[ "$COMPLETION_PROMISE" != "null" ]] && echo "\`$COMPLETION_PROMISE\`" || echo "none" )
+  VERIFY_CMD_DISPLAY=$( [[ "$VERIFY_COMMAND" != "null" ]] && echo "\`$VERIFY_COMMAND\`" || echo "none" )
+
+  cat > "$REPORT_FILE" <<EOF
+# ralpha-team Report
+
+## Session Summary
+
+| Field | Value |
+|-------|-------|
+| Mode | $MODE |
+| Iterations | $ITERATION / $MAX_DISPLAY |
+| Team | $TEAM_NAME (size: $TEAM_SIZE) |
+| Started | $STARTED_AT |
+| Ended | $ENDED_AT |
+| Completion | $COMPLETION_REASON |
+| Verification | $VERIFY_DISPLAY |
+
+## Objective
+
+$OBJECTIVE
+
+## Configuration
+
+- **Completion promise**: $PROMISE_DISPLAY
+- **Verify command**: $VERIFY_CMD_DISPLAY
+- **Max iterations**: $MAX_DISPLAY
+
+## Git History
+
+\`\`\`
+$GIT_LOG
+\`\`\`
+EOF
+
+  qa_log "report" "generated" "file=$REPORT_FILE" "completion_reason=$COMPLETION_REASON"
+  echo "Report generated: $REPORT_FILE"
+  exit 0
+fi
+
+# --- QA analysis mode ---
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "Error: 'jq' is required for QA analysis but was not found." >&2
@@ -15,7 +101,7 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 LOG_FILE="${1:-.claude/ralpha-qa.jsonl}"
-OUTPUT_FILE="ralpha-qa-findings.md"
+OUTPUT_FILE=".claude/ralpha-qa-findings.md"
 
 if [[ ! -f "$LOG_FILE" ]]; then
   echo "No QA log found at $LOG_FILE" >&2
@@ -224,7 +310,7 @@ cat >> "$OUTPUT_FILE" <<'EOF'
 To use these findings as input for a self-improvement cycle:
 
 ```bash
-/ralpha-team:solo Address the MUST-FIX findings in ralpha-qa-findings.md \
+/ralpha-team:solo Address the MUST-FIX findings in .claude/ralpha-qa-findings.md \
   --completion-promise 'ALL FINDINGS ADDRESSED' \
   --verify-command 'bash tests/test-runner.sh' \
   --max-iterations 10

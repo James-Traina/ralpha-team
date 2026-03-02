@@ -58,7 +58,6 @@ Both modes use the same completion mechanism: a dual gate. Claude has to (1) exp
 | `/ralpha-team:cancel` | Kill the active session |
 | `/ralpha-team:status` | Check where things stand |
 | `/ralpha-team:qa` | Analyze telemetry from last session |
-| `/ralpha-team:help` | Full docs |
 
 ## The dual gate
 
@@ -88,17 +87,16 @@ Every session writes structured logs to `.claude/ralpha-qa.jsonl`. After a sessi
 /ralpha-team:qa
 ```
 
-This generates a findings report (`ralpha-qa-findings.md`) with a health score and prioritized issues: stuck loops, flaky verification, idle teammates, excessive iterations. The report also suggests a follow-up command to fix the issues it found — so the plugin can improve itself.
+This generates a findings report (`.claude/ralpha-qa-findings.md`) with a health score and prioritized issues: stuck loops, flaky verification, idle teammates, excessive iterations. The report also suggests a follow-up command to fix the issues it found — so the plugin can improve itself.
 
 ## Components
 
 | Category | Count | Location |
 |----------|-------|----------|
-| Commands | 6 | `commands/` — team, solo, cancel, status, qa, help |
+| Commands | 5 | `commands/` — team, solo, cancel, status, qa |
 | Agents | 5 | `agents/` — architect, implementer, tester, reviewer, debugger |
 | Hooks | 5 | `hooks/` — session-start, stop, task-completed, teammate-idle, pre-compact |
-| Scripts | 7 | `scripts/` — session-init, setup, parsing, verification, QA logging, reports |
-| Skills | 1 | `skills/` — ralpha-orchestration |
+| Scripts | 5 | `scripts/` — setup, parsing, verification, QA logging, QA analysis + reports |
 | Tests | 100 | `tests/` — 10 test files |
 
 Run `bash tests/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.

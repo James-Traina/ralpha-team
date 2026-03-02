@@ -77,10 +77,10 @@ ANALYZE_EXIT=$?
 set -e
 assert_exit "analyze: healthy session → exit 0" 0 $ANALYZE_EXIT
 
-FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+FINDINGS=$(cat "$TEST_TMPDIR/.claude/ralpha-qa-findings.md")
 assert_contains "findings: health score present" "Health Score:" "$FINDINGS"
 
-rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
+rm -f "$TEST_TMPDIR/.claude/ralpha-qa-findings.md"
 
 # ============================================================
 # Test: qa-analyze.sh detects stuck loop (MUST-FIX)
@@ -101,10 +101,10 @@ cat > "$QA_LOG" <<'STUCK_LOG'
 STUCK_LOG
 
 set +e; bash "$ANALYZE" "$QA_LOG" >/dev/null 2>&1; set -e
-FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+FINDINGS=$(cat "$TEST_TMPDIR/.claude/ralpha-qa-findings.md")
 assert_contains "stuck loop detected (MUST-FIX)" "Stuck loop" "$FINDINGS"
 
-rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
+rm -f "$TEST_TMPDIR/.claude/ralpha-qa-findings.md"
 
 # ============================================================
 # Test: qa-analyze.sh detects verification never passes (MUST-FIX)
@@ -123,10 +123,10 @@ cat > "$QA_LOG" <<'VERIFY_FAIL_LOG'
 VERIFY_FAIL_LOG
 
 set +e; bash "$ANALYZE" "$QA_LOG" >/dev/null 2>&1; set -e
-FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+FINDINGS=$(cat "$TEST_TMPDIR/.claude/ralpha-qa-findings.md")
 assert_contains "verify-never-passes detected (MUST-FIX)" "Verification never passes" "$FINDINGS"
 
-rm -f "$TEST_TMPDIR/ralpha-qa-findings.md"
+rm -f "$TEST_TMPDIR/.claude/ralpha-qa-findings.md"
 
 # ============================================================
 # Test: qa-analyze.sh detects excessive iterations
@@ -144,7 +144,7 @@ echo '{"ts":"2026-02-26T10:00:10Z","component":"stop-hook","event":"session_comp
 } > "$QA_LOG"
 
 set +e; bash "$ANALYZE" "$QA_LOG" >/dev/null 2>&1; set -e
-FINDINGS=$(cat "$TEST_TMPDIR/ralpha-qa-findings.md")
+FINDINGS=$(cat "$TEST_TMPDIR/.claude/ralpha-qa-findings.md")
 assert_contains "excessive iterations detected" "Excessive iterations" "$FINDINGS"
 
 teardown_test_env

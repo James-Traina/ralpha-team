@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Tests for scripts/generate-report.sh (10 tests)
+# Tests for qa-analyze.sh --report mode (10 tests)
 
 setup_test_env
 
-REPORT="$REPO_ROOT/scripts/generate-report.sh"
+REPORT="$REPO_ROOT/scripts/qa-analyze.sh"
 
-# Initialize a git repo so generate-report.sh can run git log
+# Initialize a git repo so report generation can run git log
 git init -q "$TEST_TMPDIR" 2>/dev/null
 git -C "$TEST_TMPDIR" config user.email "test@test.com"
 git -C "$TEST_TMPDIR" config user.name "Test"
@@ -37,7 +37,7 @@ STATE
 # ============================================================
 
 set +e
-OUTPUT=$(bash "$REPORT" "completed" 2>&1)
+OUTPUT=$(bash "$REPORT" --report "completed" 2>&1)
 EXIT=$?
 set -e
 assert_exit "no state file → exit 1" 1 $EXIT
@@ -49,7 +49,7 @@ assert_exit "no state file → exit 1" 1 $EXIT
 create_report_state
 
 set +e
-OUTPUT=$(bash "$REPORT" "completed" 2>&1)
+OUTPUT=$(bash "$REPORT" --report "completed" 2>&1)
 EXIT=$?
 set -e
 assert_exit "report generation → exit 0" 0 $EXIT
@@ -70,7 +70,7 @@ create_report_state
 rm -f "$TEST_TMPDIR/ralpha-report.md"
 
 set +e
-OUTPUT=$(bash "$REPORT" "cancelled" 2>&1)
+OUTPUT=$(bash "$REPORT" --report "cancelled" 2>&1)
 EXIT=$?
 set -e
 assert_exit "cancelled report → exit 0" 0 $EXIT
