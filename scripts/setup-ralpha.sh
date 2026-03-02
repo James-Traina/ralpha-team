@@ -199,7 +199,7 @@ EOF
 
 HAS_PROMISE=$( [[ "$COMPLETION_PROMISE" != "null" ]] && echo "true" || echo "false" )
 HAS_VERIFY=$( [[ "$VERIFY_COMMAND" != "null" ]] && echo "true" || echo "false" )
-qa_log_num "setup" "session_start" \
+qa_log "setup" "session_start" \
   "mode=$MODE" "max_iterations=$MAX_ITERATIONS" "team_size=$TEAM_SIZE" \
   "has_promise=$HAS_PROMISE" "has_verify=$HAS_VERIFY" "persona=$PERSONA" "team_name=$TEAM_NAME"
 

@@ -82,5 +82,3 @@ CRITICAL: Do NOT output the promise until the work is genuinely complete and ver
 - Have teammates commit their work to branches, then you merge
 - If two teammates need to coordinate, have them message each other directly
 - Monitor for stuck teammates — reassign their tasks if they're not progressing
-
-Each loop iteration is an opportunity to course-correct, reassign, and drive toward completion.

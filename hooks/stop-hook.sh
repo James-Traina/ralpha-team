@@ -23,7 +23,7 @@ MODE=$(ralpha_parse_field "mode")
 COMPLETION_PROMISE=$(ralpha_parse_field "completion_promise")
 VERIFY_COMMAND=$(ralpha_parse_field "verify_command")
 
-qa_log_num "stop-hook" "invoked" "iteration=$ITERATION" "max_iterations=$MAX_ITERATIONS" "mode=$MODE"
+qa_log "stop-hook" "invoked" "iteration=$ITERATION" "max_iterations=$MAX_ITERATIONS" "mode=$MODE"
 
 # --- Helpers ---
 
@@ -66,6 +66,9 @@ block_and_continue() {
   local sys_msg="$1"
   local prompt
   prompt=$(ralpha_parse_prompt)
+  if [[ -z "$prompt" ]]; then
+    abort_with_warning "No prompt text in state file"
+  fi
   qa_log "stop-hook" "decision" "action=block" "system_msg=$sys_msg"
   jq -n --arg prompt "$prompt" --arg msg "$sys_msg" \
     '{ "decision": "block", "reason": $prompt, "systemMessage": $msg }'
@@ -85,7 +88,7 @@ fi
 # --- Max iterations check ---
 
 if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
-  qa_log_num "stop-hook" "max_iterations_reached" "iteration=$ITERATION" "max_iterations=$MAX_ITERATIONS"
+  qa_log "stop-hook" "max_iterations_reached" "iteration=$ITERATION" "max_iterations=$MAX_ITERATIONS"
   complete_session "max_iterations_reached" "Max iterations ($MAX_ITERATIONS) reached."
 fi
 
@@ -97,13 +100,9 @@ if [[ ! -f "$TRANSCRIPT_PATH" ]]; then
   abort_with_warning "Transcript file not found ($TRANSCRIPT_PATH)"
 fi
 
-if ! grep -q '"role"[[:space:]]*:[[:space:]]*"assistant"' "$TRANSCRIPT_PATH"; then
-  abort_with_warning "No assistant messages in transcript"
-fi
-
 LAST_LINE=$(grep '"role"[[:space:]]*:[[:space:]]*"assistant"' "$TRANSCRIPT_PATH" | tail -1)
 if [[ -z "$LAST_LINE" ]]; then
-  abort_with_warning "Failed to extract last assistant message"
+  abort_with_warning "No assistant messages in transcript"
 fi
 
 set +e
@@ -121,15 +120,19 @@ if [[ $JQ_EXIT -ne 0 ]] || [[ -z "$LAST_OUTPUT" ]]; then
 fi
 
 MSG_LENGTH=${#LAST_OUTPUT}
-qa_log_num "stop-hook" "transcript_parsed" "msg_length=$MSG_LENGTH"
+qa_log "stop-hook" "transcript_parsed" "msg_length=$MSG_LENGTH"
 
 # --- Check completion promise ---
 
 PROMISE_DETECTED=false
 if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
-  # Extract text between <promise>...</promise> tags. Uses [^<]* instead of .*? to prevent
-  # matching across nested or malformed tags (e.g. <promise>foo<promise>bar</promise>).
-  PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>([^<]*)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
+  # Only attempt extraction if <promise> tag is actually present.
+  # Without this guard, perl -pe returns the entire input unchanged when no tags are found,
+  # which would false-positive if the message text happens to match the promise phrase.
+  PROMISE_TEXT=""
+  if echo "$LAST_OUTPUT" | grep -qF '<promise>'; then
+    PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>([^<]*)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
+  fi
   # PROMISE_TEXT is already trimmed by the perl extraction above, so only lowercase it.
   PROMISE_LOWER=$(echo "$PROMISE_TEXT" | tr '[:upper:]' '[:lower:]')
   EXPECTED_LOWER=$(echo "$COMPLETION_PROMISE" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -143,29 +146,29 @@ fi
 
 if [[ "$PROMISE_DETECTED" = true ]]; then
   if [[ "$VERIFY_COMMAND" != "null" ]] && [[ -n "$VERIFY_COMMAND" ]]; then
-    qa_timer_start _VERIFY_TIMER
+    qa_timer_start
     set +e
     VERIFY_RESULT=$(bash "$SCRIPT_DIR/verify-completion.sh" 2>&1)
     VERIFY_EXIT=$?
     set -e
-    VERIFY_ELAPSED=$(qa_timer_elapsed _VERIFY_TIMER)
-    qa_log_num "stop-hook" "verify_after_promise" "exit_code=$VERIFY_EXIT" "duration_s=$VERIFY_ELAPSED"
+    VERIFY_ELAPSED=$(qa_timer_elapsed)
+    qa_log "stop-hook" "verify_after_promise" "exit_code=$VERIFY_EXIT" "duration_s=$VERIFY_ELAPSED"
 
     if [[ $VERIFY_EXIT -eq 0 ]]; then
-      local_tmp="${RALPHA_STATE_FILE}.tmp.$$"
+      tmp="${RALPHA_STATE_FILE}.tmp.$$"
       # Only modify within frontmatter (n==1), not the prompt body
       awk '
         BEGIN{n=0}
         /^---$/{n++; print; next}
         n==1 && /^verify_passed:/{print "verify_passed: true"; next}
         {print}
-      ' "$RALPHA_STATE_FILE" > "$local_tmp"
-      mv "$local_tmp" "$RALPHA_STATE_FILE"
+      ' "$RALPHA_STATE_FILE" > "$tmp"
+      mv "$tmp" "$RALPHA_STATE_FILE"
       complete_session "completed" "Promise detected AND verification passed."
     else
       NEXT=$(bump_iteration)
       VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -20)
-      qa_log_num "stop-hook" "verify_failed_after_promise" "next_iteration=$NEXT"
+      qa_log "stop-hook" "verify_failed_after_promise" "next_iteration=$NEXT"
       block_and_continue "Ralpha iteration $NEXT | Promise detected but VERIFICATION FAILED. Read the failure output carefully and fix the root cause, not symptoms. Verification output: $VERIFY_SNIPPET"
     fi
   else
@@ -187,11 +190,6 @@ if [[ "$MODE" = "team" ]]; then
   SYSTEM_MSG="Ralpha iteration $NEXT [TEAM mode] | $PROMISE_MSG | Check teammate inboxes and task status. If stuck, try a different approach or simplify the task."
 else
   SYSTEM_MSG="Ralpha iteration $NEXT [SOLO mode] | $PROMISE_MSG | If stuck, try a different approach or simplify the task."
-fi
-
-PROMPT_TEXT=$(ralpha_parse_prompt)
-if [[ -z "$PROMPT_TEXT" ]]; then
-  abort_with_warning "No prompt text in state file"
 fi
 
 block_and_continue "$SYSTEM_MSG"

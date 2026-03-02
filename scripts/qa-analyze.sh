@@ -133,7 +133,9 @@ MAX_ITER="${MAX_ITER:-0}"
 STOP_INVOCATIONS=$(jq -r 'select(.component=="stop-hook" and .event=="invoked") | .event' "$LOG_FILE" | wc -l | tr -d ' ')
 PROMISE_CHECKS=$(jq -r 'select(.component=="stop-hook" and .event=="promise_check") | .event' "$LOG_FILE" | wc -l | tr -d ' ')
 PROMISE_DETECTED=$(jq -r 'select(.component=="stop-hook" and .event=="promise_check" and .data.detected=="true") | .event' "$LOG_FILE" | wc -l | tr -d ' ')
+# Floor at 0: data inconsistency could make DETECTED > CHECKS
 PROMISE_MISSED=$(( PROMISE_CHECKS - PROMISE_DETECTED ))
+if [[ "$PROMISE_MISSED" -lt 0 ]]; then PROMISE_MISSED=0; fi
 VERIFY_RUNS=$(jq -r 'select(.component=="verify") | .event' "$LOG_FILE" | wc -l | tr -d ' ')
 VERIFY_PASSED=$(jq -r 'select(.component=="verify" and .event=="passed") | .event' "$LOG_FILE" | wc -l | tr -d ' ')
 VERIFY_FAILED=$(jq -r 'select(.component=="verify" and .event=="failed") | .event' "$LOG_FILE" | wc -l | tr -d ' ')
@@ -267,44 +269,29 @@ cat > "$OUTPUT_FILE" <<EOF
 
 EOF
 
-if [[ "$MUST_COUNT" -gt 0 ]]; then
-  echo "### MUST-FIX ($MUST_COUNT)" >> "$OUTPUT_FILE"
+# Emit a findings section: heading, numbered items split on '|' delimiters.
+# Args: heading count array_items...
+emit_findings_section() {
+  local heading="$1" count="$2"
+  shift 2
+  if [[ "$count" -eq 0 ]]; then return; fi
+  echo "### $heading ($count)" >> "$OUTPUT_FILE"
   echo "" >> "$OUTPUT_FILE"
-  for i in "${!FINDINGS_MUST_FIX[@]}"; do
-    IFS='|' read -ra PARTS <<< "${FINDINGS_MUST_FIX[$i]}"
-    echo "$((i+1)). ${PARTS[0]}" >> "$OUTPUT_FILE"
+  local idx=0
+  for item in "$@"; do
+    IFS='|' read -ra PARTS <<< "$item"
+    echo "$((idx+1)). ${PARTS[0]}" >> "$OUTPUT_FILE"
     for part in "${PARTS[@]:1}"; do
       echo "   - $part" >> "$OUTPUT_FILE"
     done
     echo "" >> "$OUTPUT_FILE"
+    idx=$((idx + 1))
   done
-fi
+}
 
-if [[ "$SHOULD_COUNT" -gt 0 ]]; then
-  echo "### SHOULD-FIX ($SHOULD_COUNT)" >> "$OUTPUT_FILE"
-  echo "" >> "$OUTPUT_FILE"
-  for i in "${!FINDINGS_SHOULD_FIX[@]}"; do
-    IFS='|' read -ra PARTS <<< "${FINDINGS_SHOULD_FIX[$i]}"
-    echo "$((i+1)). ${PARTS[0]}" >> "$OUTPUT_FILE"
-    for part in "${PARTS[@]:1}"; do
-      echo "   - $part" >> "$OUTPUT_FILE"
-    done
-    echo "" >> "$OUTPUT_FILE"
-  done
-fi
-
-if [[ "$NICE_COUNT" -gt 0 ]]; then
-  echo "### NICE-TO-HAVE ($NICE_COUNT)" >> "$OUTPUT_FILE"
-  echo "" >> "$OUTPUT_FILE"
-  for i in "${!FINDINGS_NICE_TO_HAVE[@]}"; do
-    IFS='|' read -ra PARTS <<< "${FINDINGS_NICE_TO_HAVE[$i]}"
-    echo "$((i+1)). ${PARTS[0]}" >> "$OUTPUT_FILE"
-    for part in "${PARTS[@]:1}"; do
-      echo "   - $part" >> "$OUTPUT_FILE"
-    done
-    echo "" >> "$OUTPUT_FILE"
-  done
-fi
+emit_findings_section "MUST-FIX" "$MUST_COUNT" "${FINDINGS_MUST_FIX[@]+"${FINDINGS_MUST_FIX[@]}"}"
+emit_findings_section "SHOULD-FIX" "$SHOULD_COUNT" "${FINDINGS_SHOULD_FIX[@]+"${FINDINGS_SHOULD_FIX[@]}"}"
+emit_findings_section "NICE-TO-HAVE" "$NICE_COUNT" "${FINDINGS_NICE_TO_HAVE[@]+"${FINDINGS_NICE_TO_HAVE[@]}"}"
 
 if [[ "$TOTAL_FINDINGS" -eq 0 ]]; then
   echo "No issues detected. Session looks healthy." >> "$OUTPUT_FILE"

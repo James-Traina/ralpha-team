@@ -13,7 +13,7 @@ Execute the setup script in solo mode:
 "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh" --mode solo $ARGUMENTS
 ```
 
-You are now in a **Ralpha solo loop**. This works like the classic Ralph loop: when you try to exit, the stop hook feeds the SAME PROMPT back to you. You'll see your previous work in files and git history, allowing you to iterate and improve.
+You are now in a **Ralpha solo loop**. When you try to exit, the stop hook feeds the same prompt back to you. You'll see your previous work in files and git history.
 
 ## Persona
 

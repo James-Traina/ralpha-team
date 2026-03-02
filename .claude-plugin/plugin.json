@@ -1,6 +1,6 @@
 {
   "name": "ralpha-team",
-  "description": "Ralpha orchestration: self-referential loops with agent-teams parallelism. Solo/team modes, role personas, dual-gate verification, and QA telemetry for autonomous development.",
+  "description": "Runs your prompt in a loop until a verification command passes. Solo mode for one session, team mode for parallel agents. Logs telemetry for post-session QA.",
   "version": "1.9.0",
   "author": {
     "name": "James Traina"

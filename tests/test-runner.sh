@@ -125,7 +125,7 @@ create_transcript() {
 }
 
 hook_input() {
-  printf '{"transcript_path":"%s"}' "$1"
+  jq -cn --arg p "$1" '{"transcript_path":$p}'
 }
 
 create_state() {

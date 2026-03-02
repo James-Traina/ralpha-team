@@ -28,4 +28,4 @@ If there are MUST-FIX findings, recommend running a self-improvement cycle:
   --max-iterations 10
 ```
 
-This creates the dogfooding flywheel: session → QA log → analyze → fix → session.
+QA findings feed back into follow-up sessions: session → log → analyze → fix → session.

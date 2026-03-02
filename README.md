@@ -2,7 +2,7 @@
 
 A Claude Code plugin that runs your prompt in a loop until the job is actually done.
 
-You give it an objective, a way to check completion, and optionally a team size. It keeps going — feeding the same prompt back, iteration after iteration — until the verification command passes.
+You give it an objective, a way to check completion, and optionally a team size. It feeds the same prompt back, iteration after iteration, until the verification command passes.
 
 ## Install
 
@@ -99,7 +99,7 @@ Every session writes structured logs to `.claude/ralpha-qa.jsonl`. After a sessi
 /ralpha-team:qa
 ```
 
-This generates a findings report (`.claude/ralpha-qa-findings.md`) with a health score and prioritized issues: stuck loops, flaky verification, idle teammates, excessive iterations. The report also suggests a follow-up command to fix the issues it found — so the plugin can improve itself.
+This generates a findings report (`.claude/ralpha-qa-findings.md`) with a health score and prioritized issues: stuck loops, flaky verification, idle teammates, excessive iterations. It also suggests a follow-up command you can run to fix what it found.
 
 ## Components
 

@@ -57,7 +57,7 @@
 
 - JSONL telemetry logging (qa-log.sh)
 - Pattern detection and analysis (qa-analyze.sh)
-- Self-improvement flywheel cycle
+- QA findings feed back into follow-up sessions
 
 ## v1.1.0 — High-priority fixes
 

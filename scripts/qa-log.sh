@@ -6,17 +6,16 @@
 #
 # Usage:
 #   source "$SCRIPT_DIR/qa-log.sh"
-#   qa_log "stop-hook" "promise_check" detected=true expected="ALL DONE"
+#   qa_log "stop-hook" "promise_check" "detected=true" "expected=ALL DONE"
 #
 # Log format (JSONL, one entry per line):
 #   {"ts":"2026-02-26T10:00:00Z","component":"stop-hook","event":"promise_check","data":{"detected":"true","expected":"ALL DONE"}}
 
 RALPHA_QA_LOG=".claude/ralpha-qa.jsonl"
 
-# Write a structured log entry.
+# Write a structured log entry. Numeric values are auto-detected and stored as numbers.
 # Args: component event [key=value ...]
 qa_log() {
-  # No-op if .claude/ dir doesn't exist (no active session)
   [[ -d .claude ]] || return 0
 
   local component="${1:-unknown}"
@@ -26,70 +25,40 @@ qa_log() {
   local ts
   ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-  # Build data object from remaining key=value args
-  local data_json="{}"
+  # Build all jq args and the data expression in one pass (1 jq call total)
+  local jq_args=(--arg ts "$ts" --arg c "$component" --arg e "$event")
+  local data_expr="{"
+  local sep=""
+  local i=0
   for kv in "$@"; do
     local key="${kv%%=*}"
     local val="${kv#*=}"
-    # Use jq to safely escape values
-    data_json=$(echo "$data_json" | jq -c --arg k "$key" --arg v "$val" '. + {($k): $v}')
-  done
-
-  # Write complete entry
-  jq -cn \
-    --arg ts "$ts" \
-    --arg component "$component" \
-    --arg event "$event" \
-    --argjson data "$data_json" \
-    '{"ts":$ts,"component":$component,"event":$event,"data":$data}' \
-    >> "$RALPHA_QA_LOG" 2>/dev/null || true
-}
-
-# Log with numeric values (avoids quoting numbers as strings)
-# Args: component event [key=value ...] where values may be numeric
-qa_log_num() {
-  [[ -d .claude ]] || return 0
-
-  local component="${1:-unknown}"
-  local event="${2:-unknown}"
-  shift 2 2>/dev/null || true
-
-  local ts
-  ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-  local data_json="{}"
-  for kv in "$@"; do
-    local key="${kv%%=*}"
-    local val="${kv#*=}"
-    # If value is numeric, insert as number; otherwise as string
     if [[ "$val" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
-      data_json=$(echo "$data_json" | jq -c --arg k "$key" --argjson v "$val" '. + {($k): $v}')
+      jq_args+=(--argjson "v$i" "$val")
     else
-      data_json=$(echo "$data_json" | jq -c --arg k "$key" --arg v "$val" '. + {($k): $v}')
+      jq_args+=(--arg "v$i" "$val")
     fi
+    data_expr+="${sep}\"${key}\":\$v${i}"
+    sep=","
+    i=$((i + 1))
   done
+  data_expr+="}"
 
-  jq -cn \
-    --arg ts "$ts" \
-    --arg component "$component" \
-    --arg event "$event" \
-    --argjson data "$data_json" \
-    '{"ts":$ts,"component":$component,"event":$event,"data":$data}' \
+  jq -cn "${jq_args[@]}" \
+    "{\"ts\":\$ts,\"component\":\$c,\"event\":\$e,\"data\":$data_expr}" \
     >> "$RALPHA_QA_LOG" 2>/dev/null || true
 }
 
-# Start a timer (stores epoch seconds in a variable name)
+# Start a timer (stores epoch seconds in a global)
+_QA_TIMER_START=0
+
 qa_timer_start() {
-  local varname="${1:-_QA_TIMER}"
-  eval "$varname=$(date +%s)"
+  _QA_TIMER_START=$(date +%s)
 }
 
-# Get elapsed seconds since timer start
+# Get elapsed seconds since last qa_timer_start
 qa_timer_elapsed() {
-  local varname="${1:-_QA_TIMER}"
-  local start_val
-  eval "start_val=\$$varname"
   local now
   now=$(date +%s)
-  echo $((now - start_val))
+  echo $(( now - _QA_TIMER_START ))
 }
