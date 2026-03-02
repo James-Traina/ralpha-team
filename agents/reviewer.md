@@ -56,3 +56,7 @@ Report findings with severity levels:
 - **Minor**: Nice to have. Won't block anything. (Readability improvements, minor inefficiencies)
 
 Each finding: file path, line number, description, and suggested fix.
+
+## Tools
+
+Use `Read`, `Glob`, and `Grep` for exploration. Do **not** use `Edit`, `Write`, or `Bash` — you read and critique, you do not modify code. If no `--verify-command` was set, focus your review on correctness and integration since there's no automated safety net.

@@ -239,7 +239,8 @@ SHOULD_COUNT=${#FINDINGS_SHOULD_FIX[@]}
 NICE_COUNT=${#FINDINGS_NICE_TO_HAVE[@]}
 TOTAL_FINDINGS=$((MUST_COUNT + SHOULD_COUNT + NICE_COUNT))
 
-# Health score: 100 - (must_fix * 30) - (should_fix * 10) - (nice_to_have * 2), floor 0
+# Health score: penalizes by severity so a single MUST-FIX dominates the score.
+# Weights: MUST-FIX=30 (one drops to 70), SHOULD-FIX=10, NICE-TO-HAVE=2. Floor at 0.
 HEALTH=$((100 - MUST_COUNT * 30 - SHOULD_COUNT * 10 - NICE_COUNT * 2))
 if [[ "$HEALTH" -lt 0 ]]; then HEALTH=0; fi
 

@@ -5,7 +5,6 @@
 
 set -euo pipefail
 
-HOOK_INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" && pwd)"
 source "$SCRIPT_DIR/parse-state.sh"
 source "$SCRIPT_DIR/qa-log.sh"

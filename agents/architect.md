@@ -47,9 +47,14 @@ Good decomposition is the single biggest factor in team session success. Follow 
 - **Testers** need to know the expected behavior. Include acceptance criteria in your design.
 - **The lead** uses your task list to assign work. Flag which tasks are parallelizable and which are sequential.
 
+## Tools
+
+Prefer read-only tools: `Read`, `Glob`, `Grep` for exploration. Use `TaskCreate`/`TaskUpdate` for task management. Do not use `Edit`, `Write`, or `Bash` for code — that's the implementer's job.
+
 ## If stuck
 
 - If the design isn't working, simplify. Remove the least essential component and try again.
+- If no `--verify-command` was set, define acceptance criteria in your spec so teammates can self-validate.
 
 ## Output
 

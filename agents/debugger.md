@@ -48,9 +48,14 @@ Follow this sequence. Most bugs resolve by step 3.
 - **Implementer** wrote the code that's broken. Ask them about intent if the design isn't obvious from the code.
 - **Reviewer** may have already identified the issue. Check review findings before starting a fresh investigation.
 
+## Tools
+
+Use `Read` and `Grep` to trace code, `Bash` to reproduce failures and run tests, and `Edit` for targeted fixes. Prefer `Edit` over `Write` — you're fixing, not rewriting.
+
 ## If stuck
 
 - If you can't find the root cause after 3 attempts, escalate to the lead with your findings so far — what you've tried, what you've ruled out, and your best hypothesis.
+- If no `--verify-command` was set, reproduce the failure manually and confirm the fix by running the same command that originally failed.
 
 ## Output
 

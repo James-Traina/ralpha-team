@@ -159,7 +159,9 @@ fi
 # Create state directory
 mkdir -p .claude
 
-# Quote values for YAML
+# Quote values for safe YAML embedding in the state file.
+# WHY: Prompt text and verify commands can contain quotes, colons, and other YAML-special
+# characters that would corrupt the frontmatter if written unquoted.
 quote_yaml() {
   local val="$1"
   if [[ "$val" = "null" ]]; then
@@ -171,6 +173,7 @@ quote_yaml() {
   fi
 }
 
+# Last 7 chars of epoch timestamp — short enough for display, unique enough to avoid collisions
 TEAM_NAME="ralpha-$(date +%s | tail -c 7)"
 
 cat > .claude/ralpha-team.local.md <<EOF

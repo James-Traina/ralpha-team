@@ -39,7 +39,11 @@ Create an agent team. Available personas are defined in `${CLAUDE_PLUGIN_ROOT}/a
 
 **How to use personas**: Read the persona file (e.g. `${CLAUDE_PLUGIN_ROOT}/agents/implementer.md`) and include its full content in the teammate's spawn prompt. This gives each teammate their role definition, responsibilities, and working style.
 
-Choose personas based on the objective. A typical team: 1 architect + 2 implementers + 1 tester. Adjust based on task type.
+**Choose personas based on the task type:**
+- Planning-heavy work (new project, major refactor): architect + 2 implementers + tester
+- Bug-fix session: debugger + implementer + tester
+- Code quality pass: reviewer + implementer + tester
+- Default / mixed: 1 architect + 2 implementers + 1 tester
 
 **Create the team** using `TeamCreate` with the `team_name` from the state file (`.claude/ralpha-team.local.md`). Then spawn teammates using the `Agent` tool with the `team_name` parameter so they join the team and can access the shared task list.
 
@@ -63,6 +67,7 @@ On each iteration of the loop:
 **If things go wrong:**
 - If verification fails 2+ times in a row: re-read the error output, then consider reassigning the failing work to a debugger or simplifying the approach.
 - If a teammate is stuck: reassign their task to another teammate or break it into smaller subtasks.
+- If a merge conflict occurs: stop the conflicting teammate, resolve the conflict yourself, then reassign remaining work with updated file ownership.
 
 ### Phase 4: Complete
 When all work is done and verified:

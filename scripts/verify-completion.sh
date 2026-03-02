@@ -6,6 +6,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Note: parse-state.sh is also sourced by stop-hook.sh (our caller).
+# Sourcing it again here is harmless (idempotent) and keeps this script standalone-runnable.
 source "$SCRIPT_DIR/parse-state.sh"
 source "$SCRIPT_DIR/qa-log.sh"
 
