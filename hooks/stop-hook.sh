@@ -130,8 +130,8 @@ if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   # Extract text between <promise>...</promise> tags. Uses [^<]* instead of .*? to prevent
   # matching across nested or malformed tags (e.g. <promise>foo<promise>bar</promise>).
   PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>([^<]*)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
-  # Case-insensitive comparison with whitespace normalization
-  PROMISE_LOWER=$(echo "$PROMISE_TEXT" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  # PROMISE_TEXT is already trimmed by the perl extraction above, so only lowercase it.
+  PROMISE_LOWER=$(echo "$PROMISE_TEXT" | tr '[:upper:]' '[:lower:]')
   EXPECTED_LOWER=$(echo "$COMPLETION_PROMISE" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   if [[ -n "$PROMISE_LOWER" ]] && [[ "$PROMISE_LOWER" = "$EXPECTED_LOWER" ]]; then
     PROMISE_DETECTED=true

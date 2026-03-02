@@ -14,8 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Install jq
-        run: sudo apt-get install -y jq
+      - name: Ensure jq is available
+        run: command -v jq || (sudo apt-get update -y && sudo apt-get install -y jq)
 
       - name: Syntax check (bash -n)
         run: |
