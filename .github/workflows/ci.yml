@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Syntax check (bash -n)
+        run: |
+          for f in scripts/*.sh hooks/*.sh tests/*.sh; do
+            bash -n "$f" || exit 1
+          done
+
+      - name: Validate JSON configs
+        run: |
+          jq . .claude-plugin/plugin.json > /dev/null
+          jq . hooks/hooks.json > /dev/null
+
+      - name: Run tests
+        run: bash tests/test-runner.sh
