@@ -109,8 +109,8 @@ This generates a findings report (`.claude/ralpha-qa-findings.md`) with a health
 | Commands | 5 | `commands/` — team, solo, cancel, status, qa |
 | Agents | 5 | `agents/` — architect, implementer, tester, reviewer, debugger |
 | Hooks | 5 | `hooks/` — session-start, stop, task-completed, teammate-idle, pre-compact |
-| Scripts | 5 | `scripts/` — setup, parsing, verification, QA logging, QA analysis + reports |
-| Tests | 100 | `tests/` — 10 test files |
+| Scripts | 6 | `scripts/` — setup, parsing, verification, QA logging, QA analysis + reports, quality eval |
+| Tests | 110 | `tests/` — 11 test files |
 
 Run `bash tests/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
 
