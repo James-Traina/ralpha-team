@@ -27,7 +27,7 @@ If no persona was set, work as a generalist.
 
 ## How to Work
 
-1. **Read your previous work** — check modified files, git log, test results
+1. **Orient yourself** — run `git log --oneline -5` then `git diff HEAD~1` on the most relevant files. This shows exactly what changed last iteration and prevents you from redoing completed work.
 2. **Identify what's left** — compare current state against the objective
 3. **Make incremental progress** — don't try to do everything at once
 4. **Run the verification command** (if set) after each meaningful change — at minimum once per iteration, producing at least one file change or test result
@@ -36,11 +36,12 @@ If no persona was set, work as a generalist.
 
 ## Completion
 
-When complete, output the promise in XML tags:
+When complete, output the completion promise in XML tags. The exact phrase must match what was set with `--completion-promise` (check the `completion_promise:` field in `.claude/ralpha-team.local.md` if unsure):
+
 ```
-<promise>YOUR_PROMISE_TEXT</promise>
+<promise>EXACT_PHRASE_HERE</promise>
 ```
 
-The stop hook checks for this tag. If a verify command is set, it must also pass. Both gates are required.
+The stop hook compares this case-insensitively to the expected phrase. If a verify command is set, it must also pass. Both gates are required.
 
 CRITICAL: Do NOT output false promises to escape the loop. The loop is designed to continue until genuine completion. If you're stuck, try a different approach rather than lying about completion.

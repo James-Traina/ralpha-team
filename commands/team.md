@@ -57,17 +57,21 @@ When spawning each teammate, include in their prompt:
 - Clear success criteria
 
 ### Phase 3: Monitor
-On each iteration of the loop:
-1. Run `TaskList` to check completed/pending/blocked tasks
-2. Messages from teammates are delivered automatically — read and act on them
-3. Use `TaskUpdate` to reassign unclaimed tasks to idle teammates (set `owner`)
-4. Do synthesis work yourself (merge results, resolve conflicts)
-5. If all tasks are complete, run verification and assess completion
+
+**Start every iteration with this sequence:**
+1. `TaskList` — find tasks that are pending with no owner; claim or reassign them with `TaskUpdate`
+2. Read teammate messages (delivered automatically)
+3. Review any newly completed work for correctness
+4. If all tasks complete, run verification and assess completion
+
+Between-iteration work:
+- Do synthesis yourself (merge results, resolve conflicts, update interfaces)
+- If two tasks need to touch the same file, serialize them with `addBlockedBy` rather than risking a conflict
 
 **If things go wrong:**
-- If verification fails 2+ times in a row: re-read the error output, then consider reassigning the failing work to a debugger or simplifying the approach.
-- If a teammate is stuck: reassign their task to another teammate or break it into smaller subtasks.
-- If a merge conflict occurs: stop the conflicting teammate, resolve the conflict yourself, then reassign remaining work with updated file ownership.
+- If verification fails 2+ times in a row: re-read the full error output, then reassign the failing work to a debugger or break the task into smaller pieces — don't let the same approach run a third time unchanged.
+- If a teammate is stuck or silent for an iteration: reassign their task to a fresh teammate rather than waiting.
+- If a merge conflict occurs: stop the conflicting teammate, resolve it yourself, then reassign remaining work with updated file ownership.
 
 ### Phase 4: Complete
 When all work is done and verified:

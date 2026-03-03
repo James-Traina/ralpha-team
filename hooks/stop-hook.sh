@@ -174,7 +174,7 @@ if [[ "$PROMISE_DETECTED" = true ]]; then
       complete_session "completed" "Promise detected AND verification passed."
     else
       NEXT=$(bump_iteration)
-      VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -20)
+      VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -30)
       qa_log "stop-hook" "verify_failed_after_promise" "next_iteration=$NEXT"
       block_and_continue "Ralpha iteration $NEXT | Promise detected but VERIFICATION FAILED. Read the failure output carefully and fix the root cause, not symptoms. Verification output: $VERIFY_SNIPPET"
     fi
@@ -194,9 +194,9 @@ else
 fi
 
 if [[ "$MODE" = "team" ]]; then
-  SYSTEM_MSG="Ralpha iteration $NEXT [TEAM mode] | $PROMISE_MSG | Check teammate inboxes and task status. If stuck, try a different approach or simplify the task."
+  SYSTEM_MSG="Ralpha iteration $NEXT [TEAM mode] | $PROMISE_MSG | Start here: (1) Run TaskList — claim or reassign any pending tasks with no owner using TaskUpdate. (2) Read teammate messages. (3) Review completed work for correctness. (4) If all tasks done, run verification and assess completion. If stuck 2+ iterations: break the blocking task into smaller pieces or reassign to a different teammate."
 else
-  SYSTEM_MSG="Ralpha iteration $NEXT [SOLO mode] | $PROMISE_MSG | If stuck, try a different approach or simplify the task."
+  SYSTEM_MSG="Ralpha iteration $NEXT [SOLO mode] | $PROMISE_MSG | Start here: run git log --oneline -5 to see what changed last iteration, then focus on the gap between current state and the objective. If stuck 2+ iterations: abandon the current approach and try something fundamentally different."
 fi
 
 block_and_continue "$SYSTEM_MSG"

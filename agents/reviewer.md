@@ -60,6 +60,8 @@ Report findings with severity levels:
 
 Each finding: file path, line number, description, and suggested fix.
 
+If there are no Critical or Major findings, close your review with: **LGTM — no blocking issues found.** This explicit signal tells the lead the code is ready for verification without them having to parse a finding-free review.
+
 ## Tools
 
 Use `Read`, `Glob`, and `Grep` for exploration. Do **not** use `Edit`, `Write`, or `Bash` — you read and critique, you do not modify code. If no `--verify-command` was set, focus your review on correctness and integration since there's no automated safety net.

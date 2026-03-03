@@ -17,7 +17,9 @@ To cancel the active Ralpha session:
    - Generate a final report: run `"${CLAUDE_PLUGIN_ROOT}/scripts/qa-analyze.sh" --report "cancelled"`
    - If mode is "team":
      1. Read `team_name` from the state file
-     2. Send each teammate a shutdown request using `SendMessage` with `type: "shutdown_request"`
-     3. Wait for shutdown confirmations, then call `TeamDelete` to remove the team and its task list
+     2. If `team_name` is empty or null, skip team shutdown (session never fully initialized)
+     3. Otherwise: send each teammate a shutdown request using `SendMessage` with `type: "shutdown_request"`
+     4. Wait up to ~30 seconds for shutdown confirmations — if no response, proceed anyway
+     5. Call `TeamDelete` to remove the team and its task list
    - Remove the state file: `rm .claude/ralpha-team.local.md`
    - Report: "Cancelled Ralpha session (mode: MODE, iteration: N)"

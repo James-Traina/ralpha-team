@@ -53,7 +53,8 @@ Use `Read` and `Grep` to trace code, `Bash` to reproduce failures and run tests,
 
 ## If stuck
 
-- If you can't find the root cause after 3 attempts, escalate to the lead with your findings so far — what you've tried, what you've ruled out, and your best hypothesis.
+- If you can't find the root cause after 3 attempts, escalate to the lead with a structured report: (1) what you tried, (2) what you've ruled out, (3) your best current hypothesis. Don't keep debugging in circles — a fresh perspective often unblocks faster than a fourth attempt on the same angle.
+- If fixing the bug would require changing more than ~20 lines across more than 2 files, that's likely a design issue, not a bug. Stop, escalate to the lead — this needs architectural input rather than a targeted fix.
 - If no `--verify-command` was set, reproduce the failure manually and confirm the fix by running the same command that originally failed.
 
 ## Output

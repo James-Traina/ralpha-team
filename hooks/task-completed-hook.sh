@@ -34,6 +34,6 @@ if [[ $VERIFY_EXIT -eq 0 ]]; then
 fi
 
 qa_log "task-completed" "gate_blocked" "exit_code=$VERIFY_EXIT" "duration_s=$VERIFY_ELAPSED"
-VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -10)
+VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -20)
 echo "Task completion blocked: verification command failed. Output: $VERIFY_SNIPPET"
 exit 2

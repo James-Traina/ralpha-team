@@ -17,7 +17,12 @@ Now read `.claude/ralpha-qa-findings.md` and present the findings to the user.
 For each finding:
 1. Explain what was detected and why it matters
 2. Show the specific file and suggested fix
-3. Assess whether it's a real issue or a false positive given the session context
+3. Assess whether it's a real issue or a false positive. Use these criteria:
+   - **stuck_loop**: Likely false positive if the session completed in ≤3 iterations (short sessions resemble loops at small scale)
+   - **excessive_iterations**: Likely false positive if the objective was genuinely complex (multi-file refactors, new features) — high iteration counts are relative to scope
+   - **verification_never_passes**: Likely false positive if the verify command was added late in the session, so early iterations had nothing to pass
+   - **idle_waste**: Likely false positive if teammates went idle immediately after finishing their tasks (brief idle before being reassigned is expected)
+   - A finding is almost certainly real if the same pattern repeats across 3+ iterations, or if the session ended without completing the objective
 
 If there are MUST-FIX findings, recommend running a self-improvement cycle:
 
