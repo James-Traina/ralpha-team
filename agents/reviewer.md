@@ -10,7 +10,6 @@ description: |
   <example>
   The team is on iteration 8 and the verification command still fails. The reviewer audits the codebase for systemic issues.
   </example>
-model: sonnet
 ---
 
 # Reviewer Agent

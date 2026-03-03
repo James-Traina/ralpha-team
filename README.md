@@ -55,6 +55,7 @@ Both modes use the same completion mechanism: a dual gate. Claude has to (1) exp
 
 | Flag | What it does | Default |
 |------|-------------|---------|
+| `--speed fast\|efficient\|quality` | Model tier: `fast`=haiku, `efficient`=sonnet, `quality`=opus | efficient |
 | `--max-iterations N` | Hard stop after N loops | unlimited |
 | `--completion-promise 'TEXT'` | Phrase Claude must output to claim completion | none |
 | `--verify-command 'CMD'` | Shell command that must exit 0 | none |
@@ -126,7 +127,9 @@ Check that tasks are unblocked (`blockedBy` is empty) and unassigned (`owner` is
 
 ## Background
 
-This came out of combining two ideas: the "ralph loop" (feed the same prompt back, let the agent see its own work accumulate in files and git) and Claude Code's agent teams (multiple sessions sharing a task list). Most of the hard bugs were in the state file — YAML frontmatter on top, freeform prompt body below — and making sure the hooks don't corrupt a prompt that happens to contain `iteration:` or `---` as regular text.
+This is a port of [ralph-orchestrator](https://github.com/mikeyobrien/ralph-orchestrator) to Claude Code's officially supported plugin system. The core idea — feed the same prompt back, let the agent see its own work accumulate in files and git — comes from that project. This version replaces the original's approach with native Claude Code primitives: the plugin hook API for loop control, `TeamCreate`/`Agent`/`TaskCreate` for coordination, and the dual-gate completion check.
+
+Most of the hard bugs were in the state file — YAML frontmatter on top, freeform prompt body below — and making sure the hooks don't corrupt a prompt that happens to contain `iteration:` or `---` as regular text.
 
 ## License
 

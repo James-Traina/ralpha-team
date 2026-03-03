@@ -10,7 +10,6 @@ description: |
   <example>
   Tests pass individually but fail when run together. The debugger investigates shared state.
   </example>
-model: sonnet
 ---
 
 # Debugger Agent

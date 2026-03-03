@@ -33,6 +33,7 @@ VERIFY_COMMAND="null"
 MODE="team"
 TEAM_SIZE=3
 PERSONA="null"
+SPEED="efficient"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -46,6 +47,7 @@ USAGE:
 
 OPTIONS:
   --mode <solo|team>             Execution mode (default: team)
+  --speed <fast|efficient|quality>  Model tier: fast=haiku, efficient=sonnet (default), quality=opus
   --max-iterations <n>           Max loop iterations (default: unlimited)
   --completion-promise '<text>'  Promise phrase for completion
   --verify-command '<cmd>'       Verification command (must exit 0)
@@ -95,6 +97,14 @@ HELP_EOF
         exit 1
       fi
       TEAM_SIZE="$2"
+      shift 2
+      ;;
+    --speed)
+      if [[ -z "${2:-}" ]] || [[ "$2" != "fast" && "$2" != "efficient" && "$2" != "quality" ]]; then
+        echo "Error: --speed must be 'fast', 'efficient', or 'quality', got: '${2:-}'" >&2
+        exit 1
+      fi
+      SPEED="$2"
       shift 2
       ;;
     --persona)
@@ -176,6 +186,17 @@ quote_yaml() {
   fi
 }
 
+# Map speed tier to model name
+case "$SPEED" in
+  fast)      MODEL="haiku"  ;;
+  efficient) MODEL="sonnet" ;;
+  quality)   MODEL="opus"   ;;
+  *)
+    echo "Error: Internal error — unexpected speed value: '$SPEED'" >&2
+    exit 1
+    ;;
+esac
+
 # Last 7 chars of epoch timestamp — short enough for display, unique enough to avoid collisions
 TEAM_NAME="ralpha-$(date +%s | tail -c 7)"
 
@@ -183,6 +204,8 @@ cat > .claude/ralpha-team.local.md <<EOF
 ---
 active: true
 mode: $MODE
+speed: $SPEED
+model: $MODEL
 iteration: 1
 max_iterations: $MAX_ITERATIONS
 completion_promise: $(quote_yaml "$COMPLETION_PROMISE")
@@ -200,7 +223,7 @@ EOF
 HAS_PROMISE=$( [[ "$COMPLETION_PROMISE" != "null" ]] && echo "true" || echo "false" )
 HAS_VERIFY=$( [[ "$VERIFY_COMMAND" != "null" ]] && echo "true" || echo "false" )
 qa_log "setup" "session_start" \
-  "mode=$MODE" "max_iterations=$MAX_ITERATIONS" "team_size=$TEAM_SIZE" \
+  "mode=$MODE" "speed=$SPEED" "model=$MODEL" "max_iterations=$MAX_ITERATIONS" "team_size=$TEAM_SIZE" \
   "has_promise=$HAS_PROMISE" "has_verify=$HAS_VERIFY" "persona=$PERSONA" "team_name=$TEAM_NAME"
 
 # Output setup message
@@ -208,6 +231,7 @@ cat <<EOF
 Ralpha-team activated!
 
 Mode: $MODE
+Speed: $SPEED ($MODEL)
 Iteration: 1
 Max iterations: $(if [[ $MAX_ITERATIONS -gt 0 ]]; then echo $MAX_ITERATIONS; else echo "unlimited"; fi)
 Completion promise: $(if [[ "$COMPLETION_PROMISE" != "null" ]]; then echo "$COMPLETION_PROMISE"; else echo "none"; fi)

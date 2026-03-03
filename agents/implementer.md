@@ -10,7 +10,6 @@ description: |
   <example>
   The verification command is failing because a function returns the wrong type. The implementer fixes it.
   </example>
-model: sonnet
 ---
 
 # Implementer Agent

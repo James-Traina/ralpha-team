@@ -10,7 +10,6 @@ description: |
   <example>
   The verification command passes but only because the test suite is incomplete. The tester adds the missing coverage.
   </example>
-model: sonnet
 ---
 
 # Tester Agent

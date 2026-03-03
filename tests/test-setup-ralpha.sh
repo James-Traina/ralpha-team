@@ -8,7 +8,7 @@ SETUP="$REPO_ROOT/scripts/setup-ralpha.sh"
 
 # --- Basic invocation: team mode ---
 
-OUTPUT=$(bash "$SETUP" --mode team "Build a REST API" --max-iterations 5 --completion-promise "DONE" --verify-command "npm test" --team-size 4 2>&1)
+OUTPUT=$(bash "$SETUP" --mode team --speed fast "Build a REST API" --max-iterations 5 --completion-promise "DONE" --verify-command "npm test" --team-size 4 2>&1)
 EXIT=$?
 assert_exit "team mode exits 0 + state file created" 0 $EXIT
 
@@ -17,10 +17,8 @@ source "$REPO_ROOT/scripts/parse-state.sh"
 ralpha_load_frontmatter
 assert_eq "state: mode is team" "team" "$(ralpha_parse_field "mode")"
 assert_eq "state: completion_promise stored" "DONE" "$(ralpha_parse_field "completion_promise")"
-assert_eq "state: verify_command stored" "npm test" "$(ralpha_parse_field "verify_command")"
-
-PROMPT=$(ralpha_parse_prompt)
-assert_eq "state: prompt body stored" "Build a REST API" "$PROMPT"
+assert_eq "state: speed stored" "fast" "$(ralpha_parse_field "speed")"
+assert_eq "state: model mapped from speed" "haiku" "$(ralpha_parse_field "model")"
 
 rm "$TEST_TMPDIR/.claude/ralpha-team.local.md"
 

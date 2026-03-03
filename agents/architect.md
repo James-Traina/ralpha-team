@@ -10,7 +10,6 @@ description: |
   <example>
   The team hit iteration 5 with failing integration tests. The architect needs to re-examine the module boundaries and fix the interfaces.
   </example>
-model: sonnet
 ---
 
 # Architect Agent
