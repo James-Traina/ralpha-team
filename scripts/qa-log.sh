@@ -50,14 +50,15 @@ qa_log() {
 }
 
 # Start a timer (stores epoch seconds in a global)
-_QA_TIMER_START=0
+_QA_TIMER_START=""
 
 qa_timer_start() {
   _QA_TIMER_START=$(date +%s)
 }
 
-# Get elapsed seconds since last qa_timer_start
+# Get elapsed seconds since last qa_timer_start. Returns 0 if timer was never started.
 qa_timer_elapsed() {
+  [[ -n "$_QA_TIMER_START" ]] || { echo "0"; return; }
   local now
   now=$(date +%s)
   echo $(( now - _QA_TIMER_START ))

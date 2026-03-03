@@ -94,7 +94,13 @@ fi
 
 # --- Parse transcript for last assistant message ---
 
-TRANSCRIPT_PATH=$(echo "$HOOK_INPUT" | jq -r '.transcript_path')
+set +e
+TRANSCRIPT_PATH=$(echo "$HOOK_INPUT" | jq -r '.transcript_path' 2>/dev/null)
+JQ_EXIT=$?
+set -e
+if [[ $JQ_EXIT -ne 0 ]] || [[ -z "$TRANSCRIPT_PATH" ]] || [[ "$TRANSCRIPT_PATH" == "null" ]]; then
+  abort_with_warning "Malformed hook input (missing transcript_path)"
+fi
 
 if [[ ! -f "$TRANSCRIPT_PATH" ]]; then
   abort_with_warning "Transcript file not found ($TRANSCRIPT_PATH)"
@@ -127,8 +133,9 @@ qa_log "stop-hook" "transcript_parsed" "msg_length=$MSG_LENGTH"
 PROMISE_DETECTED=false
 if [[ "$COMPLETION_PROMISE" != "null" ]] && [[ -n "$COMPLETION_PROMISE" ]]; then
   # Only attempt extraction if <promise> tag is actually present.
-  # Without this guard, perl -pe returns the entire input unchanged when no tags are found,
-  # which would false-positive if the message text happens to match the promise phrase.
+  # Without this guard, perl -0777 -pe returns the entire input unchanged when no tags are found
+  # (it slurps all input as one string and emits it when the regex does not match), which would
+  # false-positive if the message text happens to match the promise phrase.
   PROMISE_TEXT=""
   if echo "$LAST_OUTPUT" | grep -qF '<promise>'; then
     PROMISE_TEXT=$(echo "$LAST_OUTPUT" | perl -0777 -pe 's/.*?<promise>([^<]*)<\/promise>.*/$1/s; s/^\s+|\s+$//g; s/\s+/ /g' 2>/dev/null || echo "")
