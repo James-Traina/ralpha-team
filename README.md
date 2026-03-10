@@ -10,7 +10,9 @@ This approach comes from Geoffrey Huntley's [Ralph technique](https://ghuntley.c
 
 Long coding sessions degrade. The model starts strong, then slowly loses track of earlier constraints as the context fills up. It might re-implement something it already built, or forget that a test was passing and break it. By iteration 15 in a single session, you're often fighting accumulated drift as much as the actual problem.
 
-Short loops with fresh context don't have this property. Every iteration, Claude re-reads the objective, sees what's in git, and works from that ground truth rather than from its fading recollection of the last 50 messages. You re-read specs on every iteration, which costs something, but the consistency is worth it for anything non-trivial.
+What drift looks like in practice: Claude implements an auth module in message 10, then in message 40, facing a related bug, re-reads the file and doesn't recognize it as something it already wrote. Or it accepts a constraint early ("don't use global state") then violates it later because that constraint has been pushed far enough back in context that it's no longer in the effective attention window. Context windows are large but not free — as they fill with tool outputs, intermediate reasoning, and error messages, early instructions lose ground.
+
+Short loops with fresh context don't have this property. Every iteration, Claude re-reads the objective, sees what's in git, and works from that ground truth rather than from its fading recollection of the last 50 messages. You re-read specs on every iteration, which costs something in tokens, but the consistency is worth it for anything non-trivial.
 
 The dual gate is the other piece. Without some form of backpressure, Claude will claim it's done when it isn't. It's not deceptive — it's just that "the feature is now complete" is a natural way to narrate work, not necessarily a factual claim. The gate separates an intentional completion claim from incidental completion-sounding narration, then independently checks that the claim is true.
 
@@ -44,6 +46,8 @@ Before writing any code, run a planning loop. It scans your specs and existing c
 
 Why plan separately? Without a plan, each build iteration has to re-reason the scope from scratch. The model reads the codebase, figures out what's missing, picks something to work on, and implements it. Next iteration, it reads the codebase again and might pick a different thing, or pick the same thing having forgotten progress was already made. A plan file gives fresh-context iterations something stable to draw from: pick the first unchecked task, do it, check it off.
 
+The plan command runs in a short loop (1–3 iterations is usually enough) because the output is a file, not code. Once `IMPLEMENTATION_PLAN.md` exists, both solo and team modes read it automatically and use its unchecked items as the task queue.
+
 ```bash
 /ralpha-team:plan "Build a payment processing service with Stripe, webhooks, and idempotency" \
   --max-iterations 3
@@ -53,7 +57,9 @@ Why plan separately? Without a plan, each build iteration has to re-reason the s
 
 One Claude session, looping. The default for most things. Good for bug fixes, single features, refactors, anything where the work is roughly sequential.
 
-Each iteration sees the previous iteration's work via git log and file state. The model can't remember what it said last time, but it can see what it committed. That's the right kind of memory for this use case — concrete and verifiable rather than approximate and decaying.
+Each iteration sees the previous iteration's work via git log and file state. The model can't remember what it said last time, but it can see what it committed. Git history is the right kind of memory here — concrete and verifiable, not approximate and decaying.
+
+The loop continues until both the completion promise and verification command pass on the same iteration, or until `--max-iterations` is reached. Between iterations, the failure output — exactly what went wrong — is injected into the next iteration's context so Claude can respond to it, without carrying that failure report in memory for the entire session.
 
 ```bash
 /ralpha-team:solo "Fix the token refresh race condition in auth/session.py" \
@@ -68,7 +74,9 @@ A lead session that decomposes the objective into tasks, spawns multiple special
 
 Agent teams are experimental, meaningfully more expensive in tokens, and add coordination overhead. The overhead is worth it when you have a real parallelism opportunity (e.g., building a frontend, backend, and test suite simultaneously) or when you want adversarial review — multiple agents independently evaluating the same problem and disagreeing productively. For sequential or tightly-coupled work, solo with subagents is faster.
 
-**Default rule: try solo first.** Escalate to team when you can clearly describe two or more workstreams that don't need to wait for each other.
+Try solo first. Escalate to team when you can clearly describe two or more workstreams that don't need to wait for each other.
+
+In team mode, file ownership is the key constraint. The lead assigns each teammate a set of files they own exclusively. Two agents writing to the same file in parallel produces merge conflicts and wasted iterations. If two tasks need to touch the same file, they run sequentially — one blocks the other via `addBlockedBy` — rather than in parallel. The lead manages this during decomposition and reassigns if conflicts surface.
 
 ```bash
 /ralpha-team:team "Build a REST API with auth, CRUD, and integration tests" \
@@ -80,13 +88,13 @@ Agent teams are experimental, meaningfully more expensive in tokens, and add coo
 
 ## The dual gate
 
-This is the mechanism that makes the loop reliable.
+The loop exits when two things happen on the same iteration: Claude emits a completion promise in structured XML tags, and a shell verification command exits 0. Both are required. Either alone is not enough.
 
-**Gate 1 — the promise.** Claude must output `<promise>YOUR PHRASE</promise>` with the exact phrase you set. The tags matter: the hook scans for the structured tag, not for the phrase anywhere in the output. This filters out incidental completion language ("the implementation is now complete" as narration) from an intentional completion claim (`<promise>DONE</promise>` as a deliberate signal).
+The promise: Claude must output `<promise>YOUR PHRASE</promise>` with the exact phrase you set. The tags are what matter — the hook scans for the structured tag, not for the phrase anywhere in the output. This filters out incidental completion language ("the implementation is now complete" as narration) from a deliberate signal (`<promise>DONE</promise>`). Without the tags, any sentence containing your phrase would trigger exit; with them, Claude has to make an explicit, structured act of claiming completion.
 
-**Gate 2 — verification.** A shell command you provide must exit 0. This independently confirms that the claim is true. Promise without passing verification? Loop continues, failure output fed back in. Verification passes but no promise? Also continues. Both must pass on the same iteration.
+The verification: a shell command you provide must exit 0. This confirms the claim is actually true. Promise without passing verification? Loop continues, failure output fed back in. Verification passes but no promise? Also continues.
 
-The combination matters. The promise alone is gameable — Claude could output the tag just to exit the loop. The verification alone doesn't distinguish "genuinely done" from "happened to pass this time." Together, they require that Claude both believes the work is complete and that an independent check agrees.
+Why require both? The promise alone is gameable — Claude could emit the tag just to escape a loop it's frustrated with. Verification alone doesn't distinguish "genuinely done" from "happened to pass this time." Together they require Claude to believe the work is complete while an independent check agrees.
 
 ```bash
 # Example: the loop exits only when Claude outputs <promise>TESTS GREEN</promise>
@@ -97,6 +105,28 @@ The combination matters. The promise alone is gameable — Claude could output t
 ```
 
 If you omit `--completion-promise`, the loop runs until `--max-iterations`. If you omit `--verify-command`, the promise alone gates completion. You can omit both to run for a fixed number of iterations.
+
+### Writing a good verify command
+
+The verify command is the most important input. A weak one lets Claude declare done too early; a broken one causes infinite loops.
+
+Determinism matters more than you'd expect. If your command involves network calls, random seeds, or timing-dependent behavior, it will produce false failures. Mock external dependencies or fix the seed before using it as the gate.
+
+Test the actual requirement, not a proxy for it. `npm test` is only correct if there are tests for what you're building. A test suite that doesn't cover your feature passes immediately — the loop exits before anything meaningful is done. Write the tests first, or use plan mode to produce a task breakdown that includes test coverage.
+
+Speed compounds across iterations. A 2-minute test suite means 2 minutes of overhead per attempt. Run a targeted subset where you can: `pytest tests/test_auth.py` rather than `pytest`. You can always run the full suite manually after the loop exits.
+
+Output quality affects the next iteration. The exit code determines pass/fail, but on failure, stdout and stderr are captured and injected into Claude's next context — that's how it learns what went wrong. A command that outputs only "FAIL" gives Claude nothing. Add `--verbose` flags or pipe through more output: `pytest tests/ -v 2>&1 | tail -50`.
+
+### Writing a good completion promise
+
+The phrase should be something Claude would only output when the work is genuinely done, not something that appears incidentally in narration.
+
+Phrases that work: `ALL TESTS PASSING`, `MIGRATION COMPLETE`, `AUTH MODULE SHIPPED`. Specific, tied to a verifiable outcome.
+
+Avoid generic phrases like `DONE` or `COMPLETE` — they can appear in narration mid-session before the work is finished. Also avoid phrases that describe intermediate states: `TESTS WRITTEN` could be true even if those tests all fail.
+
+Comparison is case-insensitive. The phrase must appear inside `<promise>` tags — normal text like "all tests are now green" won't trigger it, which is by design.
 
 ## Options
 
@@ -132,11 +162,20 @@ In team mode, the lead assigns roles from `agents/`. Each persona has constraine
 - **tester** — writes test cases. Creative work: what edge cases does this feature need to cover? What regression tests? Separate from the validator precisely because the person writing the tests shouldn't also be the one declaring them passed.
 - **validator** — runs the build and test suite mechanically and reports PASS or FAIL. Never writes code. Single-instance (only one at a time, to avoid concurrent build conflicts).
 - **reviewer** — reads code and reports findings with file:line references and severity. Read-only. Finds what implementers miss.
-- **debugger** — diagnoses failures, identifies root causes, proposes fixes. Called in when the verifier fails and the cause isn't obvious.
+- **debugger** — diagnoses failures, identifies root causes, proposes fixes. Called in when the validator fails and the cause isn't obvious.
 
 A typical team: architect + two implementers + tester + validator. The architect designs first, implementers work in parallel on independent files, tester writes tests for the implemented behavior, validator confirms everything compiles and passes.
 
 File ownership is enforced by convention: each teammate is assigned specific files and told not to touch others. Two agents editing the same file creates merge conflicts and wasted iterations.
+
+For composition, match the work to the personas that actually fit:
+
+- New project or major feature with unclear scope: planner first, then architect + 2–3 implementers + tester + validator
+- Bug-fix where the cause is known: debugger + implementer + validator
+- Code quality pass: reviewer + implementer + validator
+- Most other cases: architect + 2 implementers + tester + validator
+
+The planner is worth running when scope is genuinely unclear. If you already know what needs to be built, skip it.
 
 ## Setting up your project
 
@@ -161,7 +200,9 @@ goes through the repository layer in src/db/" is more useful than "clean archite
 
 Every session loads this file automatically. The validator reads the commands. The implementers read the architecture section to match existing patterns.
 
-**Per-edit validation (optional):** The default gate runs at the end of each iteration. If you want errors caught immediately after each file write — before they compound — add `.ralpha-validate.conf`:
+The architecture section matters more than it might seem. Agents working with fresh context each iteration can't infer your conventions from reading the codebase — they need them stated explicitly. Things worth including: which directories are generated vs. source, how errors should be handled (throw vs. return), which external libraries are already in use and should be preferred, any naming conventions that differ from language defaults. "All HTTP errors go through `src/errors/handler.ts`" is actionable. "Use clean architecture" is not.
+
+Per-edit validation is optional but catches problems early. The default gate runs at the end of each iteration. If you want errors caught immediately after each file write — before they compound into something harder to untangle — add `.ralpha-validate.conf`:
 
 ```bash
 # .ralpha-validate.conf — runs after every Edit/Write on a source file
@@ -189,11 +230,13 @@ This analyzes the logs and generates `.claude/ralpha-qa-findings.md` with a heal
 - **Idle waste** — team mode teammates sitting unassigned (decomposition left tasks ungated or blocked)
 - **Quick completion** — finishes in 1–2 iterations (either the task was trivial or the verify command is too weak)
 
-The report ends with a suggested follow-up command. Run it after sessions that struggled, and use the findings to tighten the objective or verify command before the next run.
+The report ends with a suggested follow-up `/ralpha-team:solo` command targeting the specific findings. Run it after sessions that struggled, then use the findings to tighten the objective or verify command before the next run.
+
+The health score runs from 100 down: 30 points off per must-fix finding, 10 per should-fix, 2 per nice-to-have. Scores below 70 are worth reading carefully — they usually point to an ambiguous objective, a verify command that passed too easily, or an architectural decision that needed a human judgment call that Claude had to guess at instead.
 
 ## How a session flows
 
-What actually happens when you run `/ralpha-team:solo`:
+When you run `/ralpha-team:solo`:
 
 1. The setup script writes a state file (`.claude/ralpha-team.local.md`) with your objective, iteration counter, promise phrase, and verify command.
 2. Claude starts, reads the state file and any `IMPLEMENTATION_PLAN.md`, and begins working.
@@ -203,6 +246,8 @@ What actually happens when you run `/ralpha-team:solo`:
 6. If `--max-iterations` is hit: session ends with a report showing where it got stuck.
 
 Between iterations, Claude's context is fresh — it doesn't remember the previous iteration's reasoning, but it can see the commits it made. The iteration counter tells it how many attempts have been made. The injected failure output tells it what went wrong.
+
+The state file is plain text. You can inspect `.claude/ralpha-team.local.md` at any point to see exactly what the loop knows — the current iteration, whether verification has passed, the exact promise phrase it's matching. If a session is stuck in a bad state, this is the first place to look. Edit the file directly or run `/ralpha-team:cancel` to reset cleanly.
 
 ## Components
 
@@ -232,6 +277,12 @@ The promise phrase must also match. Check that Claude is outputting `<promise>EX
 
 **Verification keeps failing after many iterations**
 Run `/ralpha-team:qa` to see the pattern. Stuck loops usually mean the objective is too vague (the agent doesn't know what "done" looks like) or the verify command tests something different from what's being built. Try running the plan command first to produce a clearer task breakdown.
+
+**Claude keeps repeating a failing approach**
+The injected failure output isn't giving Claude enough to act on. A verify command that outputs only "FAIL" with no details leaves Claude unable to differentiate this attempt from the last. Add `--verbose` flags or capture more output: `pytest tests/ -v 2>&1 | tail -50`.
+
+**The loop exits too quickly before work is done**
+Either the promise phrase is triggering on incidental text (use a more specific phrase), or the verify command passes before the actual requirement is met. Run `/ralpha-team:qa` — quick completion in 1–2 iterations is flagged as a possible issue and the report will suggest how to tighten the gate.
 
 ## Background
 
