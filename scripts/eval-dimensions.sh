@@ -233,8 +233,8 @@ _d10_c3() { # No TODO/FIXME/HACK/XXX (exclude evaluator itself)
 }
 dim_10() {
   begin_dim 10 "Curated"
-  run_check "task-completed hook has quality gate" _d10_c1
-  run_check "README has Install + Quick start + Troubleshooting" _d10_c2
+  run_check "task-completed exits 0 always (no mid-build gate)" _d10_c1
+  run_check "README has Install + Three modes + Troubleshooting" _d10_c2
   run_check "no TODO/FIXME/HACK/XXX in source" _d10_c3
   end_dim
 }
