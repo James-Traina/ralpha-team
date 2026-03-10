@@ -16,6 +16,7 @@ The state file (`.claude/ralpha-team.local.md`) = YAML frontmatter + freeform pr
 
 | Command | Purpose |
 |---------|---------|
+| `/ralpha-team:plan <context> [opts]` | Planning loop — generates `IMPLEMENTATION_PLAN.md` |
 | `/ralpha-team:team <prompt> [opts]` | Team orchestration (parallel teammates) |
 | `/ralpha-team:solo <prompt> [opts]` | Solo loop (single session) |
 | `/ralpha-team:cancel` | Cancel active session |

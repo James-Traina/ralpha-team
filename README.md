@@ -32,38 +32,44 @@ Solo mode works without this flag. Both modes require `jq` to be installed.
 
 ## How it works
 
-Two modes:
+Three modes:
 
-**Solo** — one Claude session, looping. Each iteration sees the previous work in files and git history. Good for focused tasks like fixing a bug or writing a module.
+**Plan** — a read-only analysis loop that scans your specs and codebase, then writes `IMPLEMENTATION_PLAN.md` as a prioritised checklist. Run this before a large build to give the loop a structured task queue rather than re-reasoning scope every iteration.
+
+**Solo** — one Claude session, looping. Each iteration sees the previous work in files and git history. Good for focused tasks like fixing a bug or writing a module. Reads from `IMPLEMENTATION_PLAN.md` when present.
 
 **Team** — a lead session decomposes the objective into tasks, spawns parallel teammates (architect, implementer, tester, etc.), and coordinates across iterations. Good for larger work where you want multiple agents touching different files simultaneously.
 
-Both modes use the same completion mechanism: a dual gate. Claude has to (1) explicitly claim it's done by outputting a promise phrase, and (2) a verification command you provide has to exit 0. If Claude says it's done but the tests fail, the loop continues with the failure output fed back in.
+All modes use the same completion mechanism: a dual gate. Claude has to (1) explicitly claim it's done by outputting a promise phrase inside `<promise>` tags, and (2) a verification command you provide has to exit 0.
 
 ## Quick start
 
 ```bash
-# Solo: fix a bug, loop until tests pass
-/ralpha-team:solo Fix the token refresh race condition \
-  --completion-promise 'FIXED' \
-  --verify-command 'pytest test/test_auth.py' \
-  --max-iterations 10
+# Plan first: generate a task checklist from your specs
+/ralpha-team:plan "Build a REST API with auth, CRUD, and tests" \
+  --max-iterations 3
 
-# Team: build a feature with 4 parallel agents
-/ralpha-team:team Build a REST API with auth, CRUD, and tests \
+# Then build from the plan
+/ralpha-team:team "Work through IMPLEMENTATION_PLAN.md" \
   --completion-promise 'ALL TESTS PASSING' \
   --verify-command 'npm test' \
   --max-iterations 30 \
   --team-size 4
+
+# Or solo for a focused fix
+/ralpha-team:solo "Fix the token refresh race condition" \
+  --completion-promise 'FIXED' \
+  --verify-command 'pytest test/test_auth.py' \
+  --max-iterations 10
 ```
 
 ## Options
 
 | Flag | What it does | Default |
 |------|-------------|---------|
-| `--speed fast\|efficient\|quality` | Model tier: `fast`=haiku, `efficient`=sonnet, `quality`=opus | efficient |
+| `--speed fast\|efficient\|quality` | Default model tier for unnamed agents: `fast`=haiku, `efficient`=sonnet, `quality`=opus | efficient |
 | `--max-iterations N` | Hard stop after N loops | unlimited |
-| `--completion-promise 'TEXT'` | Phrase Claude must output to claim completion | none |
+| `--completion-promise 'TEXT'` | Phrase Claude must output inside `<promise>TEXT</promise>` tags | none |
 | `--verify-command 'CMD'` | Shell command that must exit 0 | none |
 | `--team-size N` | Number of teammates (team mode) | 3 |
 | `--persona NAME` | Role persona for solo mode | generalist |
@@ -72,6 +78,7 @@ Both modes use the same completion mechanism: a dual gate. Claude has to (1) exp
 
 | Command | What it does |
 |---------|-------------|
+| `/ralpha-team:plan <context> [opts]` | Generate or refresh `IMPLEMENTATION_PLAN.md` |
 | `/ralpha-team:team <prompt> [opts]` | Start a team session |
 | `/ralpha-team:solo <prompt> [opts]` | Start a solo loop |
 | `/ralpha-team:cancel` | Kill the active session |
@@ -82,21 +89,52 @@ Both modes use the same completion mechanism: a dual gate. Claude has to (1) exp
 
 This is the part that matters. Without it, Claude will sometimes claim it's done when it isn't.
 
-The **promise gate** requires Claude to output `<promise>YOUR PHRASE</promise>` — and the text inside has to match (case-insensitive) what you set with `--completion-promise`. The **verification gate** runs your command and checks the exit code.
+The **promise gate** requires Claude to output `<promise>YOUR PHRASE</promise>` — and the text inside has to match (case-insensitive) what you set with `--completion-promise`. Claude must emit the tags, not just the phrase. The **verification gate** runs your command and checks the exit code.
 
 Both gates have to pass on the same iteration. Promise without passing verification? Loop continues, failure output fed back. No promise at all? Keeps going until `--max-iterations`. The point is you can set it up, walk away, and come back to either finished work or a clear log of where it got stuck.
 
 ## Team personas
 
-In team mode, the lead assigns roles from `agents/`:
+In team mode, the lead assigns roles from `agents/`. Each persona has its own model assignment — named personas use their defined model regardless of `--speed`:
 
-- **architect** — structure, APIs, planning
-- **implementer** — production code
-- **tester** — tests and coverage
-- **reviewer** — code review (read-only)
-- **debugger** — diagnoses and fixes failures
+- **planner** — strategic gap analysis, plan generation (Opus)
+- **architect** — system design, APIs, task decomposition (Sonnet)
+- **implementer** — production code (Sonnet)
+- **tester** — writes tests (Sonnet)
+- **validator** — runs the build/test suite mechanically, reports pass/fail only; single-instance (Sonnet)
+- **reviewer** — code review, read-only (Sonnet)
+- **debugger** — diagnoses and fixes failures (Sonnet)
 
-A typical split: one architect, two implementers, one tester. Each teammate owns specific files to avoid merge conflicts.
+A typical split: architect + two implementers + tester + validator. Each teammate owns specific files to avoid merge conflicts.
+
+## Consumer project setup
+
+For best results, add a `CLAUDE.md` at your project root with build and validation commands. This is what the validator reads to know how to apply backpressure:
+
+```markdown
+# [Your Project Name]
+
+## Build & Validation
+
+- Build: `npm run build`
+- Tests: `npm test`
+- Typecheck: `npx tsc --noEmit`
+- Lint: `npx eslint src/`
+
+## Architecture
+
+[Key conventions, patterns, and invariants agents should respect]
+```
+
+To enable per-edit typecheck/lint (runs after every source file write), create `.ralpha-validate.conf` in the project root:
+
+```bash
+# .ralpha-validate.conf
+TYPECHECK_CMD="npx tsc --noEmit 2>&1"
+LINT_CMD="npx eslint src/ --quiet 2>&1"
+```
+
+This hooks into Claude's edit events and catches type errors before they accumulate across an iteration.
 
 ## QA telemetry
 
@@ -112,9 +150,9 @@ This generates a findings report (`.claude/ralpha-qa-findings.md`) with a health
 
 | Category | Count | Location |
 |----------|-------|----------|
-| Commands | 5 | `commands/` — team, solo, cancel, status, qa |
-| Agents | 5 | `agents/` — architect, implementer, tester, reviewer, debugger |
-| Hooks | 5 | `hooks/` — session-start, stop, task-completed, teammate-idle, pre-compact |
+| Commands | 6 | `commands/` — plan, team, solo, cancel, status, qa |
+| Agents | 7 | `agents/` — planner, architect, implementer, tester, validator, reviewer, debugger |
+| Hooks | 6 | `hooks/` — post-tool-validate, session-start, stop, task-completed, teammate-idle, pre-compact |
 | Scripts | 6 | `scripts/` — setup, parsing, verification, QA logging, QA analysis + reports, quality eval |
 | Tests | 110 | `.tests/` — 11 test files |
 

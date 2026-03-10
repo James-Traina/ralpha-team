@@ -38,23 +38,27 @@ Use `TaskUpdate` to set `addBlockedBy` for tasks with dependencies. This ensures
 
 ### Phase 2: Spawn Team
 Create an agent team. Available personas are defined in `${CLAUDE_PLUGIN_ROOT}/agents/`:
-- **architect** — system design, API planning, task decomposition
-- **implementer** — writes production code
-- **tester** — writes and runs tests
-- **reviewer** — code review (read-only, does not write code)
-- **debugger** — diagnoses failures and fixes bugs
+- **planner** — strategic gap analysis, IMPLEMENTATION_PLAN.md generation (Opus)
+- **architect** — system design, API planning, task decomposition (Sonnet)
+- **implementer** — writes production code (Sonnet)
+- **tester** — writes tests (Sonnet)
+- **validator** — runs build/tests mechanically, reports pass/fail only (Sonnet; single-instance)
+- **reviewer** — code review, read-only (Sonnet)
+- **debugger** — diagnoses failures and fixes bugs (Sonnet)
 
 **How to use personas**: Read the persona file (e.g. `${CLAUDE_PLUGIN_ROOT}/agents/implementer.md`) and include its full content in the teammate's spawn prompt. This gives each teammate their role definition, responsibilities, and working style.
 
 **Choose personas based on the task type:**
-- Planning-heavy work (new project, major refactor): architect + 2 implementers + tester
-- Bug-fix session: debugger + implementer + tester
-- Code quality pass: reviewer + implementer + tester
-- Default / mixed: 1 architect + 2 implementers + 1 tester
+- Planning-heavy work (new project, major refactor): planner + architect + 2 implementers + validator
+- Bug-fix session: debugger + implementer + validator
+- Code quality pass: reviewer + implementer + validator
+- Default / mixed: architect + 2 implementers + tester + validator
+
+**If `IMPLEMENTATION_PLAN.md` exists**, read it first and use the unchecked `- [ ]` items as the initial task queue rather than re-decomposing the objective from scratch.
 
 **Create the team** using `TeamCreate` with the `team_name` from the state file (`.claude/ralpha-team.local.md`). Then spawn teammates using the `Agent` tool with the `team_name` parameter so they join the team and can access the shared task list.
 
-Read the `model` field from the state file (`.claude/ralpha-team.local.md` frontmatter). When calling the `Agent` tool to spawn each teammate, pass this value as the `model` parameter. This is set by `--speed`: `fast`→`haiku`, `efficient`→`sonnet` (default), `quality`→`opus`. If the field is missing, default to `sonnet`.
+**Model routing**: Each persona's agent definition specifies its own model (planner=opus, others=sonnet). When spawning a named persona, use the model from that agent file's frontmatter — do not override it with `--speed`. Use `--speed` only for ad-hoc, unnamed team members. The `--speed` flag sets the default tier (`fast`→`haiku`, `efficient`→`sonnet`, `quality`→`opus`) but should not overrule per-role model assignments.
 
 When spawning each teammate, include in their prompt:
 - The full persona definition (from the agent file)

@@ -29,13 +29,14 @@ If no persona was set, work as a generalist.
 ## How to Work
 
 1. **Orient yourself** — run `git log --oneline -5` then `git diff HEAD~1` on the most relevant files. This shows exactly what changed last iteration and prevents you from redoing completed work.
-2. **Search before implementing** — before writing any code, confirm the thing you're about to build doesn't already exist. Use Grep/Glob to search for the function name, module path, or related patterns. Duplicate implementations waste iterations.
-3. **Identify what's left** — compare current state against the objective
-4. **Make incremental progress** — don't try to do everything at once
-5. **Run the verification command** (if set) after each meaningful change — at minimum once per iteration, producing at least one file change or test result
-6. **Commit after each verified change** — `git add -A && git commit -m "..."` with a clear message. Each iteration should leave a commit so progress is visible and rollback is cheap.
-7. **If no verification command is set**, rely solely on the completion promise. Self-test your work manually before claiming completion.
-8. **Only output the completion promise when it's genuinely TRUE**
+2. **Check for a plan** — if `IMPLEMENTATION_PLAN.md` exists, read it and pick the highest-priority unchecked `- [ ]` item. Work from the plan rather than re-reasoning scope from scratch each iteration.
+3. **Search before implementing** — before writing any code, confirm the thing you're about to build doesn't already exist. Use Grep/Glob to search for the function name, module path, or related patterns. Duplicate implementations waste iterations.
+4. **Identify what's left** — compare current state against the objective
+5. **Make incremental progress** — don't try to do everything at once
+6. **Run the verification command** (if set) after each meaningful change — at minimum once per iteration, producing at least one file change or test result
+7. **Commit after each verified change** — `git add -A && git commit -m "..."` with a clear message. Each iteration should leave a commit so progress is visible and rollback is cheap.
+8. **If no verification command is set**, rely solely on the completion promise. Self-test your work manually before claiming completion.
+9. **Only output the completion promise when it's genuinely TRUE**
 
 ## If Stuck
 
