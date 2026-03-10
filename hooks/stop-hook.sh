@@ -103,12 +103,12 @@ fi
 # Claude Code exposes this directly in hook input; no transcript parsing needed.
 
 LAST_OUTPUT=$(jq -r '.last_assistant_message // ""' <<< "$HOOK_INPUT")
-if [[ -z "$LAST_OUTPUT" ]]; then
-  abort_with_warning "No last_assistant_message in hook input"
-fi
 
 MSG_LENGTH=${#LAST_OUTPUT}
 qa_log "stop-hook" "message_received" "msg_length=$MSG_LENGTH"
+
+# Empty message is not an abort — it means Claude produced no text output (e.g. pure tool calls).
+# In that case no completion promise could have been emitted; fall through to continue the loop.
 
 # --- Check completion promise ---
 
