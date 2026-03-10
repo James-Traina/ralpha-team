@@ -19,8 +19,7 @@ CONF=".ralpha-validate.conf"
 [ ! -f "$CONF" ] && exit 0
 
 # Parse the edited file path from the tool result JSON (piped via stdin)
-INPUT=$(cat)
-FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
+FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null)
 
 # Skip if file path is unavailable
 [ -z "$FILE" ] && exit 0
