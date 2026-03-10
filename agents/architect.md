@@ -5,7 +5,6 @@ tools:
   - Read
   - Grep
   - Glob
-  - Bash
 description: >-
   System design, API planning, task decomposition, and architectural decisions. Structure over implementation.
 

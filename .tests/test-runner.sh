@@ -125,7 +125,10 @@ create_transcript() {
 }
 
 hook_input() {
-  jq -cn --arg p "$1" '{"transcript_path":$p}'
+  local transcript_path="$1"
+  local msg
+  msg=$(jq -r '.message.content[0].text // ""' "$transcript_path" 2>/dev/null || echo "")
+  jq -cn --arg m "$msg" '{"last_assistant_message": $m}'
 }
 
 create_state() {

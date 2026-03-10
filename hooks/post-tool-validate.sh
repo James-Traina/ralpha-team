@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # ralpha-team PostToolUse Validation Hook
 #
@@ -10,16 +11,17 @@
 #   LINT_CMD="npx eslint src/ --quiet 2>&1"
 #
 # The hook exits non-zero to block the agent from continuing if validation fails.
-# Keep commands fast (<10s) — this runs after every Edit/Write on a source file.
+# Keep commands fast — the hook has a 30-second timeout (hooks.json PostToolUse timeout).
 
 CONF=".ralpha-validate.conf"
 
 # Opt-in only — do nothing if no project config exists
 [ ! -f "$CONF" ] && exit 0
 
-# Parse the edited file path from the tool result JSON (piped via stdin)
-INPUT=$(cat)
-FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
+# Parse the edited file path from the tool result JSON (piped via stdin).
+# Guard with || true: under set -euo pipefail, jq exits non-zero on malformed/empty
+# stdin, which would abort the script before the [ -z "$FILE" ] guard below.
+FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null || true)
 
 # Skip if file path is unavailable
 [ -z "$FILE" ] && exit 0
@@ -37,8 +39,7 @@ source "$CONF"
 FAILED=0
 
 if [ -n "${TYPECHECK_CMD:-}" ]; then
-  RESULT=$(eval "$TYPECHECK_CMD" 2>&1)
-  STATUS=$?
+  set +e; RESULT=$(eval "$TYPECHECK_CMD" 2>&1); STATUS=$?; set -e
   if [ $STATUS -ne 0 ]; then
     echo "TYPECHECK FAILED (after editing ${FILE##*/}):"
     echo "$RESULT" | tail -20
@@ -47,8 +48,7 @@ if [ -n "${TYPECHECK_CMD:-}" ]; then
 fi
 
 if [ -n "${LINT_CMD:-}" ]; then
-  RESULT=$(eval "$LINT_CMD" 2>&1)
-  STATUS=$?
+  set +e; RESULT=$(eval "$LINT_CMD" 2>&1); STATUS=$?; set -e
   if [ $STATUS -ne 0 ]; then
     echo "LINT FAILED (after editing ${FILE##*/}):"
     echo "$RESULT" | tail -20
