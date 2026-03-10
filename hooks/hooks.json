@@ -23,6 +23,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are resuming a ralpha-team session after context compaction. Immediately re-read `.claude/ralpha-team.local.md` to restore your context: check the current iteration number, mode (solo/team), completion promise phrase, verify command, and team_name. Then re-orient: in team mode, run TaskList to see current task state and re-claim or reassign any in-progress tasks; in solo mode, run git log --oneline -5 to see what changed. Do not restart from scratch — continue from where the session left off.",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "Stop": [

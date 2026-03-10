@@ -36,9 +36,11 @@ Three modes:
 
 **Plan** — a read-only analysis loop that scans your specs and codebase, then writes `IMPLEMENTATION_PLAN.md` as a prioritised checklist. Run this before a large build to give the loop a structured task queue rather than re-reasoning scope every iteration.
 
-**Solo** — one Claude session, looping. Each iteration sees the previous work in files and git history. Good for focused tasks like fixing a bug or writing a module. Reads from `IMPLEMENTATION_PLAN.md` when present.
+**Solo** — one Claude session, looping. Each iteration sees the previous work in files and git history. The right default for most tasks: focused bugs, single features, iterative refactors. Reads from `IMPLEMENTATION_PLAN.md` when present.
 
-**Team** — a lead session decomposes the objective into tasks, spawns parallel teammates (architect, implementer, tester, etc.), and coordinates across iterations. Good for larger work where you want multiple agents touching different files simultaneously.
+**Team** — a lead session decomposes the objective into tasks, spawns parallel teammates, and coordinates across iterations. Use this when tasks are genuinely independent (different files, no shared interfaces) and parallel exploration adds real value. Agent teams are experimental, more expensive in tokens, and add coordination overhead — prefer solo for sequential or dependency-heavy work.
+
+**Decision rule: solo first.** Use agent teams only when you have real parallel independence (e.g., frontend + backend + tests that can proceed without waiting for each other) or when adversarial review between agents is worth the cost.
 
 All modes use the same completion mechanism: a dual gate. Claude has to (1) explicitly claim it's done by outputting a promise phrase inside `<promise>` tags, and (2) a verification command you provide has to exit 0.
 

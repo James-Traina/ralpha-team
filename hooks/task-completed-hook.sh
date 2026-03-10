@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
-# Quality gate: runs verification when a task is marked complete.
-# Exit 2 = block completion with feedback. Exit 0 = allow.
+# ralpha-team TaskCompleted Hook
+# Acknowledges task completion and logs it. Full verification runs at Stop, not here.
+#
+# Why not run verify_command on task completion?
+# In a multi-task session the global verify_command will likely fail mid-build —
+# code is partially implemented. Running it after every intermediate task penalises
+# correct work for unrelated missing pieces and wastes token budget on noisy output.
+# The Stop hook is the right place for the dual-gate verification check.
 
 set -euo pipefail
 
@@ -15,25 +21,10 @@ if [[ ! -f "$RALPHA_STATE_FILE" ]]; then
 fi
 
 ralpha_load_frontmatter
-VERIFY_COMMAND=$(ralpha_parse_field "verify_command")
+ITERATION=$(ralpha_parse_field "iteration")
+MODE=$(ralpha_parse_field "mode")
 
-if [[ "$VERIFY_COMMAND" = "null" ]] || [[ -z "$VERIFY_COMMAND" ]]; then
-  exit 0
-fi
+TASK_ID=$(jq -r '.task_id // "unknown"' <<< "$HOOK_INPUT" 2>/dev/null || echo "unknown")
 
-qa_timer_start
-set +e
-VERIFY_RESULT=$(bash "$SCRIPT_DIR/verify-completion.sh" 2>&1)
-VERIFY_EXIT=$?
-set -e
-VERIFY_ELAPSED=$(qa_timer_elapsed)
-
-if [[ $VERIFY_EXIT -eq 0 ]]; then
-  qa_log "task-completed" "gate_passed" "duration_s=$VERIFY_ELAPSED"
-  exit 0
-fi
-
-qa_log "task-completed" "gate_blocked" "exit_code=$VERIFY_EXIT" "duration_s=$VERIFY_ELAPSED"
-VERIFY_SNIPPET=$(echo "$VERIFY_RESULT" | tail -20)
-echo "Task completion blocked: verification command failed. Output: $VERIFY_SNIPPET"
-exit 2
+qa_log "task-completed" "acknowledged" "iteration=$ITERATION" "mode=$MODE" "task_id=$TASK_ID"
+exit 0

@@ -14,6 +14,8 @@ Execute the setup script in team mode:
 "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh" --mode team $ARGUMENTS
 ```
 
+> **When to use team mode:** Agent teams are best when tasks are genuinely independent — different files, no shared interfaces — and can proceed in parallel without waiting for each other. For sequential work, tightly-coupled code, or dependency-heavy tasks, a solo loop with subagents is faster and cheaper. Use team mode when parallelism or adversarial review between agents genuinely saves iterations.
+
 You are now the **lead orchestrator** of a ralpha-team session. Your role:
 
 ## Orchestration Protocol

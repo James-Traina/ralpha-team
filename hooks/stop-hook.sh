@@ -7,6 +7,13 @@
 set -euo pipefail
 
 HOOK_INPUT=$(cat)
+
+# Guard: stop hook triggered by its own block decision — prevent infinite continuation loop.
+# Claude Code sets stop_hook_active=true when the hook itself caused the re-invocation.
+if [ "$(jq -r '.stop_hook_active // false' <<< "$HOOK_INPUT")" = "true" ]; then
+  exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" && pwd)"
 source "$SCRIPT_DIR/parse-state.sh"
 source "$SCRIPT_DIR/qa-log.sh"
@@ -92,41 +99,16 @@ if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
   complete_session "max_iterations_reached" "Max iterations ($MAX_ITERATIONS) reached."
 fi
 
-# --- Parse transcript for last assistant message ---
+# --- Get last assistant message ---
+# Claude Code exposes this directly in hook input; no transcript parsing needed.
 
-set +e
-TRANSCRIPT_PATH=$(echo "$HOOK_INPUT" | jq -r '.transcript_path' 2>/dev/null)
-JQ_EXIT=$?
-set -e
-if [[ $JQ_EXIT -ne 0 ]] || [[ -z "$TRANSCRIPT_PATH" ]] || [[ "$TRANSCRIPT_PATH" == "null" ]]; then
-  abort_with_warning "Malformed hook input (missing transcript_path)"
-fi
-
-if [[ ! -f "$TRANSCRIPT_PATH" ]]; then
-  abort_with_warning "Transcript file not found ($TRANSCRIPT_PATH)"
-fi
-
-LAST_LINE=$(grep '"role"[[:space:]]*:[[:space:]]*"assistant"' "$TRANSCRIPT_PATH" | tail -1)
-if [[ -z "$LAST_LINE" ]]; then
-  abort_with_warning "No assistant messages in transcript"
-fi
-
-set +e
-LAST_OUTPUT=$(echo "$LAST_LINE" | jq -r '
-  .message.content |
-  map(select(.type == "text")) |
-  map(.text) |
-  join("\n")
-' 2>&1)
-JQ_EXIT=$?
-set -e
-
-if [[ $JQ_EXIT -ne 0 ]] || [[ -z "$LAST_OUTPUT" ]]; then
-  abort_with_warning "Failed to parse assistant message"
+LAST_OUTPUT=$(jq -r '.last_assistant_message // ""' <<< "$HOOK_INPUT")
+if [[ -z "$LAST_OUTPUT" ]]; then
+  abort_with_warning "No last_assistant_message in hook input"
 fi
 
 MSG_LENGTH=${#LAST_OUTPUT}
-qa_log "stop-hook" "transcript_parsed" "msg_length=$MSG_LENGTH"
+qa_log "stop-hook" "message_received" "msg_length=$MSG_LENGTH"
 
 # --- Check completion promise ---
 

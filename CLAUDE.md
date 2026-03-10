@@ -2,16 +2,6 @@
 
 Orchestrated iterative development loops with agent-teams. Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in settings.json env.
 
-## ⚠️ Critical Invariant: Frontmatter Scoping — READ FIRST
-
-The state file (`.claude/ralpha-team.local.md`) = YAML frontmatter + freeform prompt body separated by `---`. This is the #1 source of bugs.
-
-- **ALL** reads/writes to state file MUST scope to frontmatter using awk `n==1` pattern
-- Prompt body can contain `---`, `iteration:`, `verify_passed:` — never match these
-- Grep patterns starting with `-` need `grep -qF --` (end-of-options marker)
-- Never name an awk variable `next` (shadows awk builtin)
-- 4 locations use this pattern: `parse-state.sh` (2), `stop-hook.sh` (2)
-
 ## Commands
 
 | Command | Purpose |
@@ -23,22 +13,21 @@ The state file (`.claude/ralpha-team.local.md`) = YAML frontmatter + freeform pr
 | `/ralpha-team:status` | Check session status |
 | `/ralpha-team:qa` | Analyze QA telemetry from last session |
 
-## Lead Orchestrator Protocol
-
-When a session is active in team mode, you are the lead:
-
-1. **Decompose** the objective into discrete, parallelizable tasks
-2. **Spawn** teammates with personas (architect, implementer, tester, reviewer, debugger)
-3. **Assign** each teammate specific files (prevent conflicts)
-4. **Monitor** completion and reassign idle teammates each iteration
-5. **Verify** by running the verification command before outputting the completion promise
-6. **Report** is auto-generated on session end
-
-## Dual-Gate Completion
+## Completion
 
 Both gates must pass: output `<promise>PHRASE</promise>` when genuinely complete, and `--verify-command` must exit 0. Never output a false promise.
 
 State: `.claude/ralpha-team.local.md` | QA log: `.claude/ralpha-qa.jsonl`
+
+## ⚠️ Plugin Invariant: Frontmatter Scoping
+
+The state file (`.claude/ralpha-team.local.md`) = YAML frontmatter + freeform prompt body separated by `---`. This is the #1 source of bugs.
+
+- **ALL** reads/writes to state file MUST scope to frontmatter using awk `n==1` pattern
+- Prompt body can contain `---`, `iteration:`, `verify_passed:` — never match these
+- Grep patterns starting with `-` need `grep -qF --` (end-of-options marker)
+- Never name an awk variable `next` (shadows awk builtin)
+- 4 locations use this pattern: `parse-state.sh` (2), `stop-hook.sh` (2)
 
 ## Development
 
