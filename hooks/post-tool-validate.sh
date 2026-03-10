@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # ralpha-team PostToolUse Validation Hook
 #
@@ -37,8 +38,7 @@ source "$CONF"
 FAILED=0
 
 if [ -n "${TYPECHECK_CMD:-}" ]; then
-  RESULT=$(eval "$TYPECHECK_CMD" 2>&1)
-  STATUS=$?
+  set +e; RESULT=$(eval "$TYPECHECK_CMD" 2>&1); STATUS=$?; set -e
   if [ $STATUS -ne 0 ]; then
     echo "TYPECHECK FAILED (after editing ${FILE##*/}):"
     echo "$RESULT" | tail -20
@@ -47,8 +47,7 @@ if [ -n "${TYPECHECK_CMD:-}" ]; then
 fi
 
 if [ -n "${LINT_CMD:-}" ]; then
-  RESULT=$(eval "$LINT_CMD" 2>&1)
-  STATUS=$?
+  set +e; RESULT=$(eval "$LINT_CMD" 2>&1); STATUS=$?; set -e
   if [ $STATUS -ne 0 ]; then
     echo "LINT FAILED (after editing ${FILE##*/}):"
     echo "$RESULT" | tail -20

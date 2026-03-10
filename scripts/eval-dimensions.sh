@@ -56,7 +56,7 @@ _d01_c2() { # Frontmatter scoping: n==1 or n>=2 awk pattern >= 4 times
 }
 _d01_c3() { grep -qF '^[0-9]+$' "$REPO_ROOT/hooks/stop-hook.sh"; }
 _d01_c4() { grep -q "abort_with_warning()" "$REPO_ROOT/hooks/stop-hook.sh"; }
-_d01_c5() { [[ $(grep -c "assert_" "$REPO_ROOT/tests/test-edge-cases.sh") -ge 8 ]]; }
+_d01_c5() { [[ $(grep -c "assert_" "$REPO_ROOT/.tests/test-edge-cases.sh") -ge 8 ]]; }
 dim_01() {
   begin_dim 1 "Robust"
   run_check "set -euo pipefail in standalone scripts" _d01_c1
@@ -93,9 +93,9 @@ _d03_c1() { # No source file exceeds 350 lines (exclude evaluator itself)
     done; done
 }
 _d03_c2() { # Every export -f function is used by at least one test file
-  local funcs; funcs=$(grep "export -f" "$REPO_ROOT/tests/test-runner.sh" | sed 's/export -f //' | tr ' ' '\n')
+  local funcs; funcs=$(grep "export -f" "$REPO_ROOT/.tests/test-runner.sh" | sed 's/export -f //' | tr ' ' '\n')
   for func in $funcs; do [[ "$func" = "_bump" ]] && continue
-    grep -rq "$func" "$REPO_ROOT"/tests/test-*.sh || return 1; done
+    grep -rq "$func" "$REPO_ROOT"/.tests/test-*.sh || return 1; done
 }
 _d03_c3() { # No 3+ consecutive commented-out code lines
   for f in "$REPO_ROOT"/scripts/*.sh "$REPO_ROOT"/hooks/*.sh; do [[ -f "$f" ]] || continue
@@ -103,8 +103,9 @@ _d03_c3() { # No 3+ consecutive commented-out code lines
   done
 }
 _d03_c4() { # Flat directory structure
-  local d; d=$(find "$REPO_ROOT" -mindepth 3 -type f -not -path '*/.git/*' -not -path '*/.claude/*' \
-    -not -path '*/.serena/*' -not -path '*/.claude-plugin/*' -not -path '*/node_modules/*' -print 2>/dev/null | head -1 || true)
+  local d; d=$(find "$REPO_ROOT" -mindepth 3 -type f -not -path '*/.git/*' -not -path '*/.github/*' \
+    -not -path '*/.claude/*' -not -path '*/.serena/*' -not -path '*/.claude-plugin/*' \
+    -not -path '*/node_modules/*' -print 2>/dev/null | head -1 || true)
   [[ -z "$d" ]]
 }
 dim_03() {
@@ -132,10 +133,10 @@ dim_04() {
 
 # --- D05 Adversarial (4 checks) ---
 _d05_c1() { # Tests use create_state fixture (structured adversarial setup, not just ad-hoc strings)
-  grep -q "create_state" "$REPO_ROOT/tests/test-edge-cases.sh"; }
-_d05_c2() { grep -q "iteration:" "$REPO_ROOT/tests/test-edge-cases.sh" || grep -qF -- "---" "$REPO_ROOT/tests/test-edge-cases.sh"; }
+  grep -q "create_state" "$REPO_ROOT/.tests/test-edge-cases.sh"; }
+_d05_c2() { grep -q "iteration:" "$REPO_ROOT/.tests/test-edge-cases.sh" || grep -qF -- "---" "$REPO_ROOT/.tests/test-edge-cases.sh"; }
 _d05_c3() { [[ $(grep -c "abort_with_warning" "$REPO_ROOT/hooks/stop-hook.sh") -ge 4 ]]; }
-_d05_c4() { grep -qiE "quote|whitespace|case" "$REPO_ROOT/tests/test-edge-cases.sh"; }
+_d05_c4() { grep -qiE "quote|whitespace|case" "$REPO_ROOT/.tests/test-edge-cases.sh"; }
 dim_05() {
   begin_dim 5 "Adversarial"
   run_check "edge cases use create_state fixture" _d05_c1
@@ -146,12 +147,12 @@ dim_05() {
 }
 
 # --- D06 Rigorous (4 checks) ---
-_d06_c1() { [[ -f "$REPO_ROOT/tests/test-self-verification.sh" ]] && grep -q "README" "$REPO_ROOT/tests/test-self-verification.sh" && grep -q "count" "$REPO_ROOT/tests/test-self-verification.sh"; }
-_d06_c2() { grep -q "matcher" "$REPO_ROOT/tests/test-self-verification.sh" && grep -q "timeout" "$REPO_ROOT/tests/test-self-verification.sh"; }
-_d06_c3() { grep -qi "promise" "$REPO_ROOT/tests/test-e2e-solo.sh" && grep -qi "verif" "$REPO_ROOT/tests/test-e2e-solo.sh" && grep -qi "promise" "$REPO_ROOT/tests/test-e2e-team.sh" && grep -qi "verif" "$REPO_ROOT/tests/test-e2e-team.sh"; }
+_d06_c1() { [[ -f "$REPO_ROOT/.tests/test-self-verification.sh" ]] && grep -q "README" "$REPO_ROOT/.tests/test-self-verification.sh" && grep -q "count" "$REPO_ROOT/.tests/test-self-verification.sh"; }
+_d06_c2() { grep -q "matcher" "$REPO_ROOT/.tests/test-self-verification.sh" && grep -q "timeout" "$REPO_ROOT/.tests/test-self-verification.sh"; }
+_d06_c3() { grep -qi "promise" "$REPO_ROOT/.tests/test-e2e-solo.sh" && grep -qi "verif" "$REPO_ROOT/.tests/test-e2e-solo.sh" && grep -qi "promise" "$REPO_ROOT/.tests/test-e2e-team.sh" && grep -qi "verif" "$REPO_ROOT/.tests/test-e2e-team.sh"; }
 _d06_c4() { # Every script in scripts/ is referenced by at least one test file
   for f in "$REPO_ROOT"/scripts/*.sh; do [[ -f "$f" ]] || continue
-    grep -rq "$(basename "$f")" "$REPO_ROOT/tests/" || return 1; done
+    grep -rq "$(basename "$f")" "$REPO_ROOT/.tests/" || return 1; done
 }
 dim_06() {
   begin_dim 6 "Rigorous"
@@ -169,7 +170,7 @@ _d07_c1() { # No sleep, $RANDOM, $SRANDOM, date +%N (exclude evaluator itself)
     grep -qE '(sleep |[$]RANDOM|[$]SRANDOM|date [+]%N)' "$f" && return 1; done; return 0
 }
 _d07_c2() { # Test fixtures contain no RANDOM
-  local t; t=$(sed -n '/^create_state\b/,/^}/p; /^create_transcript\b/,/^}/p' "$REPO_ROOT/tests/test-runner.sh")
+  local t; t=$(sed -n '/^create_state\b/,/^}/p; /^create_transcript\b/,/^}/p' "$REPO_ROOT/.tests/test-runner.sh")
   echo "$t" | grep -qE 'RANDOM|SRANDOM' && return 1; return 0
 }
 _d07_c3() { grep -q "tr.*upper.*lower" "$REPO_ROOT/hooks/stop-hook.sh"; }
@@ -189,8 +190,8 @@ _d08_c1() { # No hardcoded /Users/ or /home/ (exclude evaluator itself)
   [[ -z "$found" ]]
 }
 _d08_c2() { grep -q "command -v jq" "$REPO_ROOT/scripts/setup-ralpha.sh" && grep -q "perl" "$REPO_ROOT/scripts/setup-ralpha.sh"; }
-_d08_c3() { for f in "$REPO_ROOT"/scripts/*.sh "$REPO_ROOT"/hooks/*.sh "$REPO_ROOT"/tests/*.sh; do [[ -f "$f" ]] || continue
-    grep -q '\[\[' "$f" && ! head -1 "$f" | grep -q '#!/bin/bash' && return 1; done; return 0
+_d08_c3() { for f in "$REPO_ROOT"/scripts/*.sh "$REPO_ROOT"/hooks/*.sh "$REPO_ROOT"/.tests/*.sh; do [[ -f "$f" ]] || continue
+    grep -q '\[\[' "$f" && ! head -1 "$f" | grep -qE '#!/(usr/bin/env bash|bin/bash)' && return 1; done; return 0
 }
 _d08_c4() { grep -qE 'BASH_SOURCE|SCRIPT_DIR|CLAUDE_PLUGIN_ROOT' "$REPO_ROOT/scripts/parse-state.sh" && \
   grep -qE 'BASH_SOURCE|SCRIPT_DIR|CLAUDE_PLUGIN_ROOT' "$REPO_ROOT/hooks/stop-hook.sh" && \
@@ -221,8 +222,9 @@ dim_09() {
 }
 
 # --- D10 Curated (3 checks) ---
-_d10_c1() { grep -q "verify-completion" "$REPO_ROOT/hooks/task-completed-hook.sh" && grep -q "exit 2" "$REPO_ROOT/hooks/task-completed-hook.sh"; }
-_d10_c2() { grep -qi "## Install" "$REPO_ROOT/README.md" && grep -qi "## Quick start" "$REPO_ROOT/README.md" && grep -qi "## Troubleshooting" "$REPO_ROOT/README.md"; }
+_d10_c1() { # task-completed exits 0 always (verification belongs at Stop, not mid-build)
+  grep -q "exit 0" "$REPO_ROOT/hooks/task-completed-hook.sh" && ! grep -q "exit 2" "$REPO_ROOT/hooks/task-completed-hook.sh"; }
+_d10_c2() { grep -qi "## Install" "$REPO_ROOT/README.md" && grep -qi "## Three modes" "$REPO_ROOT/README.md" && grep -qi "## Troubleshooting" "$REPO_ROOT/README.md"; }
 _d10_c3() { # No TODO/FIXME/HACK/XXX (exclude evaluator itself)
   local found; found=$(grep -rnE 'TODO|FIXME|HACK|XXX' "$REPO_ROOT/scripts" "$REPO_ROOT/hooks" \
     "$REPO_ROOT/commands" "$REPO_ROOT/agents" "$REPO_ROOT/CLAUDE.md" "$REPO_ROOT/.claude-plugin" 2>/dev/null \

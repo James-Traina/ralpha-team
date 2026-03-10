@@ -43,7 +43,8 @@ set -e
 assert_exit "task-completed: verify passes → exit 0" 0 $EXIT
 
 # ============================================================
-# task-completed-hook: verify fails → block (exit 2)
+# task-completed-hook: verify command set → still exits 0 (not run here)
+# Full verification runs at Stop hook, not on individual task completion.
 # ============================================================
 
 create_state "team" 1 0 "null" "false"
@@ -52,8 +53,8 @@ set +e
 OUTPUT=$(echo '{}' | bash "$TASK_HOOK" 2>&1)
 EXIT=$?
 set -e
-assert_exit "task-completed: verify fails → exit 2" 2 $EXIT
-assert_contains "task-completed: block message" "verification command failed" "$OUTPUT"
+assert_exit "task-completed: verify set → exit 0 (not run mid-build)" 0 $EXIT
+assert_not_contains "task-completed: no verification output" "verification" "$OUTPUT"
 
 # ============================================================
 # teammate-idle-hook: no state → allow
