@@ -6,8 +6,14 @@ You give it an objective, a way to check completion, and optionally a team size.
 
 ## Install
 
-```bash
-claude plugin install https://github.com/James-Traina/ralpha-team
+Inside Claude Code, run each command **separately**:
+
+```
+/plugin marketplace add James-Traina/science-plugins
+```
+
+```
+/plugin install ralpha-team@science-plugins
 ```
 
 ## Setup
