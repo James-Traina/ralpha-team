@@ -307,7 +307,7 @@ To use these findings as input for a self-improvement cycle:
 ```bash
 /ralpha-team:solo Address the MUST-FIX findings in .claude/ralpha-qa-findings.md \
   --completion-promise 'ALL FINDINGS ADDRESSED' \
-  --verify-command 'bash tests/test-runner.sh' \
+  --verify-command 'bash .tests/test-runner.sh' \
   --max-iterations 10
 ```
 EOF

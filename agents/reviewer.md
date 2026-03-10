@@ -5,7 +5,6 @@ tools:
   - Read
   - Grep
   - Glob
-  - Bash
 description: >-
   Code review, correctness checking, and quality assessment. Reads and critiques, does not write code.
 

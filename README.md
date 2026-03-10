@@ -169,7 +169,7 @@ TYPECHECK_CMD="npx tsc --noEmit 2>&1"
 LINT_CMD="npx eslint src/ --quiet 2>&1"
 ```
 
-This uses Claude Code's PostToolUse hook to fire typecheck and lint after every source file modification. It won't catch test failures (those run at the end of the iteration) but it will catch type errors within seconds of introducing them rather than 10 minutes later.
+This uses Claude Code's PostToolUse hook to fire typecheck and lint after every source file modification. It won't catch test failures (those run at the end of the iteration) but it will catch type errors within seconds of introducing them rather than 10 minutes later. Keep both commands fast — the hook has a 30-second timeout.
 
 ## QA telemetry
 

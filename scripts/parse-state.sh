@@ -43,5 +43,7 @@ ralpha_parse_prompt() {
     echo "ERROR: ralpha_load_frontmatter must be called before ralpha_parse_prompt" >&2
     return 1
   fi
+  # Extract body after second ---, strip leading blank lines (sed '/./,$!d'),
+  # then trailing blank lines (POSIX idiom: sed -e :a -e '/^\n*$/{$d;N;ba}')
   awk 'BEGIN{n=0} n>=2{print; next} /^---$/{n++; next}' "$RALPHA_STATE_FILE" | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}'
 }
