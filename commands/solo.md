@@ -1,4 +1,5 @@
 ---
+name: solo
 description: "Start ralpha-team solo loop (single-session mode)"
 argument-hint: "PROMPT [--speed fast|efficient|quality] [--max-iterations N] [--completion-promise TEXT] [--verify-command CMD] [--persona NAME]"
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/qa-analyze.sh:*)", "Read(${CLAUDE_PLUGIN_ROOT}/agents/*.md)"]
@@ -28,11 +29,19 @@ If no persona was set, work as a generalist.
 ## How to Work
 
 1. **Orient yourself** — run `git log --oneline -5` then `git diff HEAD~1` on the most relevant files. This shows exactly what changed last iteration and prevents you from redoing completed work.
-2. **Identify what's left** — compare current state against the objective
-3. **Make incremental progress** — don't try to do everything at once
-4. **Run the verification command** (if set) after each meaningful change — at minimum once per iteration, producing at least one file change or test result
-5. **If no verification command is set**, rely solely on the completion promise. Self-test your work manually before claiming completion.
-6. **Only output the completion promise when it's genuinely TRUE**
+2. **Search before implementing** — before writing any code, confirm the thing you're about to build doesn't already exist. Use Grep/Glob to search for the function name, module path, or related patterns. Duplicate implementations waste iterations.
+3. **Identify what's left** — compare current state against the objective
+4. **Make incremental progress** — don't try to do everything at once
+5. **Run the verification command** (if set) after each meaningful change — at minimum once per iteration, producing at least one file change or test result
+6. **Commit after each verified change** — `git add -A && git commit -m "..."` with a clear message. Each iteration should leave a commit so progress is visible and rollback is cheap.
+7. **If no verification command is set**, rely solely on the completion promise. Self-test your work manually before claiming completion.
+8. **Only output the completion promise when it's genuinely TRUE**
+
+## If Stuck
+
+- **No file changes this iteration**: your approach isn't working. Try something completely different — a different file, a different algorithm, a different angle on the problem. Repeating the same failing strategy wastes the loop.
+- **Same verification error repeating**: stop and re-read the full error carefully. Then try a different fix strategy, not the same one again.
+- **Can't implement something fully**: leave a clear TODO comment with a specific description of what's missing — never write a stub that returns fake data or pretends to work.
 
 ## Completion
 

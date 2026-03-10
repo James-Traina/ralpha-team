@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Tests for qa-analyze.sh --report mode (10 tests)
 

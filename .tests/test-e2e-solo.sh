@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # End-to-end: solo mode lifecycle (10 tests)
 

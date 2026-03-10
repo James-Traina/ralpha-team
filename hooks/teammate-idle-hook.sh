@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Runs when a teammate is about to go idle.
 # Exit 2 = send feedback (keep working). Exit 0 = allow idle.

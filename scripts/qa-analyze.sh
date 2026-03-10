@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # QA Analyzer and Report Generator for ralpha-team
 # Reads .claude/ralpha-qa.jsonl, detects patterns, outputs prioritized findings.

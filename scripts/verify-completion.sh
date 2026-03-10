@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Reads verify_command from state file and executes it.
 # Exit 0 = passed, non-zero = failed.

@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Self-verification tests: cross-references, count accuracy, and structural integrity (10 tests)
 
@@ -52,7 +53,7 @@ ACTUAL_HOOKS=$(jq '.hooks | length' "$REPO_ROOT/hooks/hooks.json" 2>/dev/null)
 README_HOOK_COUNT=$(grep -oE 'Hooks \| [0-9]+' "$REPO_ROOT/README.md" | grep -oE '[0-9]+')
 assert_eq "README hook count matches filesystem" "$ACTUAL_HOOKS" "$README_HOOK_COUNT"
 
-ACTUAL_TEST_FILES=$(find "$REPO_ROOT/tests" -name "test-*.sh" -not -name "test-runner.sh" | wc -l | tr -d ' ')
+ACTUAL_TEST_FILES=$(find "$REPO_ROOT/.tests" -name "test-*.sh" -not -name "test-runner.sh" | wc -l | tr -d ' ')
 README_TEST_COUNT=$(grep -oE '[0-9]+ test files' "$REPO_ROOT/README.md" | grep -oE '[0-9]+')
 assert_eq "README test file count matches filesystem" "$ACTUAL_TEST_FILES" "$README_TEST_COUNT"
 

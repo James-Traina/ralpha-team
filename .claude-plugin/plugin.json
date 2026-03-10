@@ -1,10 +1,12 @@
 {
   "name": "ralpha-team",
-  "description": "Port of ralph-orchestrator to Claude Code's official plugin system. Runs your prompt in a loop until a verification command passes. Solo mode for one session, team mode for parallel agents. Logs telemetry for post-session QA.",
   "version": "1.9.0",
+  "description": "Port of ralph-orchestrator to Claude Code's official plugin system. Runs your prompt in a loop until a verification command passes. Solo mode for one session, team mode for parallel agents. Logs telemetry for post-session QA.",
   "author": {
-    "name": "James Traina"
+    "name": "James Traina",
+    "url": "https://github.com/James-Traina"
   },
+  "homepage": "https://github.com/James-Traina/ralpha-team",
   "repository": "https://github.com/James-Traina/ralpha-team",
   "license": "MIT",
   "keywords": [

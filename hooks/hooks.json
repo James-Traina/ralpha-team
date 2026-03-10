@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh --init",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh\" --init",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh\"",
             "timeout": 120
           }
         ]
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/task-completed-hook.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/task-completed-hook.sh\"",
             "timeout": 120
           }
         ]
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/teammate-idle-hook.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/teammate-idle-hook.sh\"",
             "timeout": 10
           }
         ]

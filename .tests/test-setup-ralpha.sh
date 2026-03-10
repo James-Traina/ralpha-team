@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Tests for scripts/setup-ralpha.sh (10 tests)
 

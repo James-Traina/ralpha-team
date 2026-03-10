@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ralpha-team test runner
 # Usage: ./tests/test-runner.sh [test-file...]

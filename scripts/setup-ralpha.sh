@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Creates state file for in-session ralpha loop (solo or team mode).
 # Also handles --init mode for SessionStart validation.

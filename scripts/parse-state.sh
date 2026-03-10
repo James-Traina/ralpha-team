@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Shared helper: parse ralpha state file frontmatter.
 # Source this file, then call ralpha_parse_field to extract values.

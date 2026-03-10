@@ -1,4 +1,5 @@
 ---
+name: team
 description: "Start ralpha-team orchestrated loop (team mode)"
 argument-hint: "PROMPT [--speed fast|efficient|quality] [--max-iterations N] [--completion-promise TEXT] [--verify-command CMD] [--team-size N]"
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralpha.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-completion.sh:*)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/qa-analyze.sh:*)", "Read(${CLAUDE_PLUGIN_ROOT}/agents/*.md)"]
@@ -18,12 +19,18 @@ You are now the **lead orchestrator** of a ralpha-team session. Your role:
 ## Orchestration Protocol
 
 ### Phase 1: Decompose
-Break the objective into discrete, parallelizable tasks. Use `TaskCreate` to register each task — this is the shared task list that all teammates can see via `TaskList`.
+Before decomposing, ask two questions:
+
+1. **What does proof of completion look like?** Design backward from the `--verify-command` (or define acceptance criteria if none was set). Every task you create must contribute to making that verification pass — if a task doesn't connect to verification, question whether it needs to exist.
+2. **What ambiguities could cause wasted iterations?** Scan the objective for vague terms ("improve", "refactor", "integrate") and resolve them into specific, testable behavior before assigning work. Ambiguous tasks produce ambiguous code that fails review.
+
+Then break the objective into discrete, parallelizable tasks. Use `TaskCreate` to register each task — this is the shared task list that all teammates can see via `TaskList`.
 
 Each task should:
 - Have a clear deliverable (a file, a test suite, a module)
 - Be completable by one agent independently
 - List the exact file paths the assignee owns (no two teammates may edit the same file)
+- State how you'll know it's done (a test, a passing command, a specific output)
 
 **File ownership is mandatory.** When spawning teammates, explicitly assign each one a set of files. If two tasks must touch the same file, serialize them (use `addBlockedBy`) rather than running them in parallel. Violations cause merge conflicts that waste iterations.
 

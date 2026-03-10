@@ -6,6 +6,18 @@ ralpha-report.md
 
 # OS and editor artifacts
 .DS_Store
+*.swp
+*.swo
+*~
 
 # Serena project config (local only)
 .serena/
+
+# Test reports (generated)
+.tests/reports/
+
+# Evals (run manually)
+.evals/
+
+# Claude Code auto-generated project settings (local only)
+settings.json

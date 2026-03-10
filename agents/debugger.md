@@ -1,6 +1,12 @@
 ---
 name: debugger
-description: |
+model: sonnet
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+description: >-
   Diagnoses failures, traces bugs, and fixes broken tests. Activated when things go wrong.
 
   <example>

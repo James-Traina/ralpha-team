@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # QA Logger for ralpha-team
 # Source this file, then call qa_log() to write structured JSONL entries.

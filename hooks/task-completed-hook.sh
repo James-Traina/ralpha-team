@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Quality gate: runs verification when a task is marked complete.
 # Exit 2 = block completion with feedback. Exit 0 = allow.

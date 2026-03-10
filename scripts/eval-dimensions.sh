@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # 10-dimension quality evaluator for ralpha-team.
 # Runs 39 automated checks and produces a 1-5 scorecard per dimension.

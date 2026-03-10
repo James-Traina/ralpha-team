@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Tests for QA logging and analysis toolkit (10 tests)
 

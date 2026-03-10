@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Tests for task-completed-hook.sh, teammate-idle-hook.sh, and hooks.json (10 tests)
 

@@ -110,9 +110,9 @@ This generates a findings report (`.claude/ralpha-qa-findings.md`) with a health
 | Agents | 5 | `agents/` — architect, implementer, tester, reviewer, debugger |
 | Hooks | 5 | `hooks/` — session-start, stop, task-completed, teammate-idle, pre-compact |
 | Scripts | 6 | `scripts/` — setup, parsing, verification, QA logging, QA analysis + reports, quality eval |
-| Tests | 110 | `tests/` — 11 test files |
+| Tests | 110 | `.tests/` — 11 test files |
 
-Run `bash tests/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
+Run `bash .tests/test-runner.sh`. No build step, no deps beyond `jq` and standard Unix tools.
 
 ## Troubleshooting
 
@@ -130,6 +130,12 @@ Check that tasks are unblocked (`blockedBy` is empty) and unassigned (`owner` is
 This is a port of [ralph-orchestrator](https://github.com/mikeyobrien/ralph-orchestrator) to Claude Code's officially supported plugin system. The core idea — feed the same prompt back, let the agent see its own work accumulate in files and git — comes from that project. This version replaces the original's approach with native Claude Code primitives: the plugin hook API for loop control, `TeamCreate`/`Agent`/`TaskCreate` for coordination, and the dual-gate completion check.
 
 Most of the hard bugs were in the state file — YAML frontmatter on top, freeform prompt body below — and making sure the hooks don't corrupt a prompt that happens to contain `iteration:` or `---` as regular text.
+
+## Updating
+
+```bash
+/plugin update ralpha-team
+```
 
 ## License
 

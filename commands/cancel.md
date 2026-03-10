@@ -1,4 +1,5 @@
 ---
+name: cancel
 description: "Cancel active ralpha-team session"
 allowed-tools: ["Bash(test -f .claude/ralpha-team.local.md:*)", "Bash(rm .claude/ralpha-team.local.md)", "Read(.claude/ralpha-team.local.md)", "Bash(${CLAUDE_PLUGIN_ROOT}/scripts/qa-analyze.sh:*)"]
 hide-from-slash-command-tool: "true"

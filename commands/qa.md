@@ -1,4 +1,5 @@
 ---
+name: qa
 description: "Analyze QA telemetry from the last Ralpha session"
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/qa-analyze.sh:*)", "Read(.claude/ralpha-qa-findings.md)"]
 hide-from-slash-command-tool: "true"

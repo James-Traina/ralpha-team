@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ralpha-team Stop Hook
 # Prevents session exit when a ralpha loop is active.
